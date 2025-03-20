@@ -1,20 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Three.js Animation</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: white; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        canvas {
+            display: block;
+        }
     </style>
 </head>
+
 <body>
     <!-- Load Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <input type="range" id="orbitSpeedSlider" min="1" max="2" step="0.1" value="0.1" style="position: absolute; top: 10px; left: 10px; z-index: 100;">
-
+    <input type="range" id="orbitSpeedSlider" min="1" max="2" step="0.1" value="0.1"
+        style="position: absolute; top: 10px; left: 10px; z-index: 100" />
+    <div style="display: flex; flex-direction: column; position: absolute; top: 10px; right: 20px; z-index: 90;">
+        <p id="logger" style="color: black; font-family: Arial, sans-serif;">
+            Camera Z: 0
+        </p>
+        <p id="logger1" style="color: black; font-family: Arial, sans-serif;">
+            Target Z: 0
+        </p>
+    </div>
     <!-- Load Main.js (WITHOUT `type="module"`) -->
     <script src="./main.js"></script>
 </body>
+
 </html>

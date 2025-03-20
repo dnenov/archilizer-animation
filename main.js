@@ -1,8 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const orbitSpeedSlider = document.getElementById("orbitSpeedSlider");
+  const logger = document.getElementById("logger");
+  const logger1 = document.getElementById("logger1");
+
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
-  // scene.fog = new THREE.Fog(0xffffff, 9, 11);
+  scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
   const camera = new THREE.PerspectiveCamera(
     75,
@@ -25,14 +29,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const numLargeDots = 60; // Number of dots in the ring
   const smallDotSize = 0.5; // The size of the small dots before randomization
   const largeDotSize = 2.0; // The size of the large dots before randomization
-  const ringRadius = 4; // Radius of the main ring
+  const ringRadius = 2; // Radius of the main ring
   const sOrbitRadius = 0.25; // Default orbit size
   const lOrbitRadius = 0.1; // Default orbit size
   const sBaseOrbitSpeed = 1.5; // Base speed of orbits
   const lBaseOrbitSpeed = 0.8; // Base speed of orbits
 
-  // Add the ring for reference
-  drawRing(scene, ringRadius);
+  const dampingFactor = 5;
 
   // Array to store dot data
   let dots = [];
@@ -52,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
     clearcoatRoughness: 0.1, // Slight variation in glossiness
   });
 
+  // Create dot clusters
   const dotsSmall = createDotCluster(
     numSmall,
     ringRadius,
@@ -73,21 +77,29 @@ document.addEventListener("DOMContentLoaded", function () {
   dots.push(...dotsLarge);
   dots.push(...dotsSmall);
 
+  // Animation Loop
+  const clock = new THREE.Clock(); // Create a clock instance
+
   function animate() {
     requestAnimationFrame(animate);
 
-    dots.forEach((dotData, index) => {
+    const deltaTime = clock.getDelta(); // Get time since last frame
+
+    dots.forEach((dotData) => {
       const dot = dotData.mesh;
 
-      dotData.orbitSpeed = THREE.MathUtils.lerp(
+      // Smoothly interpolate orbitSpeed and orbitSize
+      dotData.orbitSpeed = THREE.MathUtils.damp(
         dotData.orbitSpeed,
         dotData.targetOrbitSpeed,
-        0.005
+        dampingFactor,
+        deltaTime
       );
-      dotData.orbitSize = THREE.MathUtils.lerp(
+      dotData.orbitSize = THREE.MathUtils.damp(
         dotData.orbitSize,
         dotData.targetOrbitSize,
-        0.005
+        dampingFactor,
+        deltaTime
       );
 
       // Step 1: Get the orbit normal (we already have it stored)
@@ -109,15 +121,20 @@ document.addEventListener("DOMContentLoaded", function () {
       );
 
       // Step 4: Apply rotation around the orbit normal
-      const rotationAngle = performance.now() * 0.002 * dotData.orbitSpeed;
+      // The orbitAngleOffset is a random intial constant to give each sphere a random position around the ring
+      const rotationAngle =
+        clock.getElapsedTime() * dotData.orbitSpeed + dotData.orbitAngleOffset; // Use elapsed time for rotation
       dot.position.sub(dotData.basePosition); // Translate to origin
       dot.position.applyAxisAngle(dotData.orbitNormal, rotationAngle); // Apply rotation
       dot.position.add(dotData.basePosition); // Translate back
     });
 
+    logger.innerHTML = `Camera Z: ${camera.position.z.toFixed(2)}`;
+
     renderer.render(scene, camera);
   }
 
+  // Function to create a cluster of dots
   function createDotCluster(
     numDots,
     ringRadius,
@@ -142,8 +159,6 @@ document.addEventListener("DOMContentLoaded", function () {
       dot.scale.set(scaleFactor, scaleFactor, scaleFactor);
       scene.add(dot);
 
-      // drawOrbitNormals(scene);
-
       // Compute the perpendicular plane normal at this point (cross product with Z-axis)
       const radialDirection = new THREE.Vector3(x, y, z).normalize();
       const orbitNormal = new THREE.Vector3()
@@ -156,11 +171,11 @@ document.addEventListener("DOMContentLoaded", function () {
         baseTheta: theta,
         basePosition: new THREE.Vector3(x, y, z),
         orbitNormal: orbitNormal,
-        orbitAngleOffset: Math.random() * Math.PI * 2, // Randomized start
+        orbitAngleOffset: Math.random() * Math.PI * 2, // Random initial angle
         orbitSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2, // Slightly different speeds
-        targetOrbitSpeed: baseOrbitSpeed, // NEW: Store the intended speed change
+        targetOrbitSpeed: baseOrbitSpeed,
         orbitSize: orbitRadius + (Math.random() - 0.5) * 2.0, // Random orbit size
-        targetOrbitSize: orbitRadius, // NEW: Store the intended orbit size change
+        targetOrbitSize: orbitRadius,
         driftFactor: 0.2, // Random drift to add wobbly motion
       });
     }
@@ -168,41 +183,110 @@ document.addEventListener("DOMContentLoaded", function () {
     return clusterDots;
   }
 
-  function drawRing(scene, ringRadius) {
-    // Create a reference circle
-    const ringGeometry = new THREE.CircleGeometry(ringRadius, 100); // 100 segments for smoothness
-    const ringMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff }); // Blue color
-
-    // Convert the CircleGeometry into a LineLoop (so it doesn’t fill the center)
-    const ringEdges = new THREE.EdgesGeometry(ringGeometry);
-    const ringOutline = new THREE.LineSegments(ringEdges, ringMaterial);
-
-    scene.add(ringOutline);
+  // Function to smoothly update target values
+  function smoothUpdateTarget(dotData, newSpeed) {
+    // Smoothly update targetOrbitSpeed and targetOrbitSize
+    dotData.targetOrbitSpeed = THREE.MathUtils.damp(
+      dotData.targetOrbitSpeed,
+      newSpeed + (Math.random() - 0.25) * 0.1,
+      dampingFactor,
+      clock.getDelta() // Use deltaTime from the clock
+    );
+    dotData.targetOrbitSize = THREE.MathUtils.damp(
+      dotData.targetOrbitSize,
+      Math.max(0.1, newSpeed * 1.2),
+      dampingFactor,
+      clock.getDelta() // Use deltaTime from the clock
+    );
   }
 
-  function drawOrbitNormals(scene) {
-    const normalMaterial = new THREE.LineBasicMaterial({
-      color: 0xff0000,
-      transparent: true, // Enable transparency
-      opacity: 0.5, // Adjust transparency (0 = fully transparent, 1 = fully opaque)
-    });
+  // Slider Event Listener to Adjust Orbit Speed
+  orbitSpeedSlider.addEventListener("input", (event) => {
+    const newSpeed = parseFloat(event.target.value);
 
     dots.forEach((dotData) => {
-      const start = dotData.mesh.position.clone(); // Start at the dot's position
-      const end = start
-        .clone()
-        .add(dotData.orbitNormal.clone().multiplyScalar(2)); // Extend by 1 unit
-
-      const normalGeometry = new THREE.BufferGeometry().setFromPoints([
-        start,
-        end,
-      ]);
-      const normalLine = new THREE.Line(normalGeometry, normalMaterial);
-      scene.add(normalLine);
+      smoothUpdateTarget(dotData, newSpeed); // Smoothly update targets
     });
+
+    // Updated formula for targetCameraZ
+    const targetCameraZ = 10 + (1 - newSpeed) * 4; // Adjusted formula
+    const targetRotation = newSpeed * 0.1; // Adjust rotation based on speed
+
+    logger1.innerHTML = `Target rotation: ${targetRotation.toFixed(2)}`;
+    smoothMoveCamera(targetCameraZ, targetRotation);
+  });
+
+  // Function to smoothly transition the camera position and rotation
+  function smoothMoveCamera(targetZ, targetRotation) {
+    const duration = 1; // Duration of the transition in seconds
+    const startZ = camera.position.z;
+    const startRotation = camera.rotation.z;
+    const startTime = performance.now();
+
+    function stepMove() {
+      const currentTime = performance.now();
+      const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+      let alpha = Math.min(elapsedTime / duration, 1); // Clamp alpha between 0 and 1
+
+      // Apply easing (ease-in-out in this example)
+      alpha =
+        alpha < 0.5
+          ? 2 * alpha * alpha // Ease-in
+          : 1 - Math.pow(-2 * alpha + 2, 2) / 2; // Ease-out
+
+      // Interpolate camera position
+      camera.position.z = THREE.MathUtils.lerp(startZ, targetZ, alpha);
+
+      // Interpolate camera rotation
+      camera.rotation.z = THREE.MathUtils.lerp(
+        startRotation,
+        targetRotation,
+        alpha
+      );
+
+      // Continue the transition until alpha reaches 1
+      if (alpha < 1) {
+        requestAnimationFrame(stepMove);
+      }
+    }
+
+    stepMove(); // Start transition
   }
 
-  animate();
+  // Variables to store the target Z position and settings
+  let targetZ = 10; // Initial camera Z position
+  let targetRotation = 0; // Initial camera rotation
+  const zoomSpeed = 0.1; // Mouse wheel zoom speed
+  const scrollRange = 1000; // Total scroll range in pixels
+  const minZ = 6; // Minimum camera Z position
+  const maxZ = 10; // Maximum camera Z position
+  const minRotation = 0; // Minimum camera rotation
+  const maxRotation = 0.5; // Maximum camera rotation
+
+  // Add event listener for mouse wheel
+  window.addEventListener("wheel", (event) => {
+    event.preventDefault(); // Prevent default scrolling
+    targetZ += event.deltaY * zoomSpeed; // Adjust target Z
+    targetZ = THREE.MathUtils.clamp(targetZ, minZ, maxZ); // Clamp to range
+
+    targetRotation += event.deltaY * zoomSpeed;
+    targetRotation = THREE.MathUtils.clamp(
+      targetRotation,
+      minRotation,
+      maxRotation
+    );
+
+    logger1.innerHTML = `Target rotation: ${targetRotation.toFixed(2)}`;
+
+    smoothMoveCamera(targetZ, targetRotation); // Smooth transition
+  });
+
+  // Add event listener for page scroll
+  window.addEventListener("scroll", () => {
+    const scrollY = window.scrollY; // Get scroll position
+    targetZ = THREE.MathUtils.lerp(maxZ, minZ, scrollY / scrollRange); // Map to Z
+    smoothMoveCamera(targetZ, camera.rotation.z); // Smooth transition
+  });
 
   // Handle Window Resize
   window.addEventListener("resize", () => {
@@ -211,33 +295,6 @@ document.addEventListener("DOMContentLoaded", function () {
     camera.updateProjectionMatrix();
   });
 
-  // Slider Event Listener to Adjust Orbit Speed
-  const orbitSpeedSlider = document.getElementById("orbitSpeedSlider");
-  orbitSpeedSlider.addEventListener("input", (event) => {
-    const newSpeed = parseFloat(event.target.value);
-
-    dots.forEach((dotData) => {
-      dotData.targetOrbitSpeed = newSpeed + (Math.random() - 0.25) * 0.1;
-      dotData.targetOrbitSize = Math.max(0.1, newSpeed * 1.2);
-    });
-
-    const targetCameraZ = 10 - newSpeed * 2.0;
-    smoothMoveCamera(targetCameraZ);
-  });
-
-  // Function to smoothly transition the camera position
-  function smoothMoveCamera(targetZ) {
-    const step = 0.05; // Adjust this for smoother/faster movement
-
-    function stepMove() {
-      if (Math.abs(camera.position.z - targetZ) > 0.1) {
-        camera.position.z += (targetZ - camera.position.z) * step;
-        requestAnimationFrame(stepMove);
-      } else {
-        camera.position.z = targetZ; // Snap to target if very close
-      }
-    }
-
-    stepMove(); // Start transition
-  }
+  // Start the animation loop
+  animate();
 });
