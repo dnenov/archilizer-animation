@@ -34,11 +34,13 @@ export function createDotCluster(
       mesh: dot,
       baseTheta: theta,
       basePosition: new THREE.Vector3(x, y, z),
-      orbitNormal,
+      orbitNormal: orbitNormal,
       orbitAngleOffset: Math.random() * Math.PI * 2,
       orbitSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2,
+      baseOrbitSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2, // 💾 snapshot
       targetOrbitSpeed: baseOrbitSpeed,
-      orbitSize: orbitRadius + (Math.random() - 0.5) * orbitVariance,
+      orbitSize: orbitRadius + orbitVariance * (Math.random() - 0.5) * 1.0,
+      baseOrbitSize: orbitRadius + (Math.random() - 0.5) * 2.0, // 💾 snapshot
       targetOrbitSize: orbitRadius,
       driftFactor: 0.2,
     });

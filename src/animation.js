@@ -24,25 +24,10 @@ function updateMaterials(camera) {
 export function animate(camera, composer) {
   function loop() {
     requestAnimationFrame(loop);
-    const deltaTime = clock.getDelta();
-
     updateMaterials(camera);
 
     dots.forEach((dotData) => {
       const dot = dotData.mesh;
-      dotData.orbitSpeed = THREE.MathUtils.damp(
-        dotData.orbitSpeed,
-        dotData.targetOrbitSpeed,
-        settings.dampingFactor,
-        deltaTime
-      );
-      dotData.orbitSize = THREE.MathUtils.damp(
-        dotData.orbitSize,
-        dotData.targetOrbitSize,
-        settings.dampingFactor,
-        deltaTime
-      );
-
       const tangent = new THREE.Vector3()
         .crossVectors(dotData.orbitNormal, new THREE.Vector3(0, 0, 1))
         .normalize();
@@ -70,18 +55,37 @@ export function animate(camera, composer) {
 }
 
 export function smoothUpdateTarget(dotData, newSpeed) {
-  dotData.targetOrbitSpeed = THREE.MathUtils.damp(
-    dotData.targetOrbitSpeed,
-    newSpeed + (Math.random() - 0.25) * 0.1,
-    settings.dampingFactor,
-    clock.getDelta()
-  );
-  dotData.targetOrbitSize = THREE.MathUtils.damp(
-    dotData.targetOrbitSize,
-    Math.max(0.1, newSpeed * 1.2),
-    settings.dampingFactor,
-    clock.getDelta()
-  );
+  const startSpeed = dotData.orbitSpeed;
+  const startSize = dotData.orbitSize;
+
+  const endSpeed = newSpeed + (Math.random() - 0.25) * 0.1;
+  const endSize = Math.max(0.1, dotData.orbitSize * newSpeed * 1.2);
+
+  const duration = 1; // seconds
+  const startTime = performance.now();
+
+  function stepUpdate() {
+    const currentTime = performance.now();
+    const elapsedTime = (currentTime - startTime) / 1000;
+    let alpha = Math.min(elapsedTime / duration, 1);
+
+    // easeInOutQuad
+    alpha =
+      alpha < 0.5 ? 2 * alpha * alpha : 1 - Math.pow(-2 * alpha + 2, 2) / 2;
+
+    dotData.targetOrbitSpeed = THREE.MathUtils.lerp(
+      startSpeed,
+      endSpeed,
+      alpha
+    );
+    dotData.targetOrbitSize = THREE.MathUtils.lerp(startSize, endSize, alpha);
+
+    if (alpha < 1) {
+      requestAnimationFrame(stepUpdate);
+    }
+  }
+
+  stepUpdate();
 }
 
 export function smoothMoveCamera(camera, targetZ, targetRotation) {

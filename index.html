@@ -8,8 +8,18 @@
     <style>
         body {
             margin: 0;
-            overflow: hidden;
             background-color: white;
+            font-family: sans-serif;
+        }
+
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Optional: makes sure scroll & clicks go through */
+            z-index: -1;
         }
 
         canvas {
@@ -18,21 +28,27 @@
     </style>
 </head>
 
-<body>
-    <!-- Load Three.js from CDN -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
-    <input type="range" id="orbitSpeedSlider" min="1" max="2" step="0.1" value="0.1"
-        style="position: absolute; top: 10px; left: 10px; z-index: 100" />
-    <div style="display: flex; flex-direction: column; position: absolute; top: 10px; right: 20px; z-index: 90;">
-        <p id="logger" style="color: black; font-family: Arial, sans-serif;">
-            Camera Z: 0
-        </p>
-        <p id="logger1" style="color: black; font-family: Arial, sans-serif;">
-            Target Z: 0
-        </p>
+  <body>
+    
+    <!-- Fixed full-screen Three.js container -->
+    <div id="three-container">
+        <div style="display: flex; flex-direction: column; position: absolute; top: 10px; right: 20px; z-index: 90;">
+            <p id="logger" style="color: black; font-family: Arial, sans-serif;">Camera Z: 0</p>
+            <p id="logger1" style="color: black; font-family: Arial, sans-serif;">Target Z: 0</p>
+          </div>
     </div>
-    <!-- Load Main.js (WITHOUT `type="module"`) -->
+  
+    <!-- Scrollable content below -->
+    <div style="height: 3000px;">
+      <div style="padding: 100px; font-family: sans-serif;">
+        <h1>Hello Scroll World</h1>
+        <p>Scroll down to interact with the animation.</p>
+        <!-- Add more dummy content as needed -->
+      </div>
+    </div>
+  
     <script type="module" src="./src/main.js"></script>
-</body>
+  </body>
+  
 
 </html>

@@ -8,8 +8,14 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { PMREMGenerator } from "three";
+import gsap from "gsap";
 import { createDotCluster } from "./cluster.js";
-import { animate, smoothMoveCamera, dots } from "./animation.js";
+import {
+  animate,
+  smoothMoveCamera,
+  smoothUpdateTarget,
+  dots,
+} from "./animation.js";
 import { settings } from "./settings.js";
 
 function generateNoiseTexture(size = 4) {
@@ -30,7 +36,7 @@ function generateNoiseTexture(size = 4) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  const orbitSpeedSlider = document.getElementById("orbitSpeedSlider");
+  const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
   const logger1 = document.getElementById("logger1");
 
@@ -52,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
     powerPreference: "high-performance",
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+  container.appendChild(renderer.domElement);
 
   const pmrem = new PMREMGenerator(renderer);
 
@@ -150,54 +156,100 @@ document.addEventListener("DOMContentLoaded", function () {
   // Start the animation loop
   animate(camera, composer);
 
-  // Event Listeners
-  orbitSpeedSlider.addEventListener("input", (event) => {
-    const newSpeed = parseFloat(event.target.value);
-    dots.forEach((dotData) => {
-      smoothUpdateTarget(dotData, newSpeed);
-    });
-    const targetCameraZ = 10 + (1 - newSpeed) * 4;
-    const targetRotation = newSpeed * 0.1;
-    logger1.innerHTML = `Target rotation: ${targetRotation.toFixed(2)}`;
-    smoothMoveCamera(camera, targetCameraZ, targetRotation);
-  });
+  // window.addEventListener(
+  //   "wheel",
+  //   (event) => {
+  //     event.preventDefault();
+  //     settings.targetZ += event.deltaY * settings.zoomSpeed;
+  //     settings.targetZ = THREE.MathUtils.clamp(
+  //       settings.targetZ,
+  //       settings.minZ,
+  //       settings.maxZ
+  //     );
+  //     settings.targetRotation -= event.deltaY * settings.zoomSpeed;
+  //     settings.targetRotation = THREE.MathUtils.clamp(
+  //       settings.targetRotation,
+  //       settings.minRotation,
+  //       settings.maxRotation
+  //     );
 
-  window.addEventListener(
-    "wheel",
-    (event) => {
-      event.preventDefault();
-      settings.targetZ += event.deltaY * settings.zoomSpeed;
-      settings.targetZ = THREE.MathUtils.clamp(
-        settings.targetZ,
-        settings.minZ,
-        settings.maxZ
-      );
-      settings.targetRotation -= event.deltaY * settings.zoomSpeed;
-      settings.targetRotation = THREE.MathUtils.clamp(
-        settings.targetRotation,
-        settings.minRotation,
-        settings.maxRotation
-      );
+  //     // logger.innerHTML = `Target Z: ${settings.targetZ.toFixed(2)}`;
+  //     // logger1.innerHTML = `Target rotation: ${settings.targetRotation.toFixed(
+  //     //   2
+  //     // )}`;
 
-      logger.innerHTML = `Target Z: ${settings.targetZ.toFixed(2)}`;
-      logger1.innerHTML = `Target rotation: ${settings.targetRotation.toFixed(
-        2
-      )}`;
-      smoothMoveCamera(camera, settings.targetZ, settings.targetRotation);
-    },
-    { passive: false }
-  );
+  //     smoothMoveCamera(camera, settings.targetZ, settings.targetRotation);
 
+  //     settings.scrollOrbitMultiplier = THREE.MathUtils.clamp(
+  //       settings.scrollOrbitMultiplier - event.deltaY * 0.001,
+  //       settings.minOrbitMultiplier,
+  //       settings.maxOrbitMultiplier
+  //     );
+
+  //     dots.forEach((dotData) => {
+  //       gsap.to(dotData, {
+  //         duration: 5,
+  //         targetOrbitSpeed:
+  //           dotData.baseOrbitSpeed * settings.scrollOrbitMultiplier,
+  //         targetOrbitSize:
+  //           dotData.baseOrbitSize * settings.scrollOrbitMultiplier,
+  //         ease: "expo.out",
+  //       });
+  //     });
+  //   },
+  //   { passive: false }
+  // );
+
+  // scroll
   window.addEventListener("scroll", () => {
     const scrollY = window.scrollY;
-    settings.targetZ = THREE.MathUtils.lerp(
-      settings.maxZ,
-      settings.minZ,
-      scrollY / settings.scrollRange
+    const t = THREE.MathUtils.clamp(
+      (scrollY - settings.minScrollY) /
+        (settings.maxScrollY - settings.minScrollY),
+      0,
+      1
     );
-    smoothMoveCamera(camera, settings.targetZ, camera.rotation.z);
+
+    settings.animationProgress = t;
+
+    // Use GSAP to animate camera and dots based on t
+    const targetZ = THREE.MathUtils.lerp(settings.maxZ, settings.minZ, t);
+    const targetRotation = THREE.MathUtils.lerp(
+      settings.minRotation,
+      settings.maxRotation,
+      t
+    );
+
+    smoothMoveCamera(camera, targetZ, targetRotation);
+
+    const orbitSpeed = THREE.MathUtils.lerp(
+      settings.minSpeedFactor,
+      settings.maxSpeedFactor,
+      t
+    );
+
+    const orbitScale = THREE.MathUtils.lerp(
+      settings.minOrbitMultiplier,
+      settings.maxOrbitMultiplier,
+      t
+    );
+
+    console.log();
+    dots.forEach((dotData) => {
+      gsap.to(dotData, {
+        duration: 0.1,
+        targetOrbitSpeed: dotData.baseOrbitSpeed * orbitSpeed,
+        targetOrbitSize: dotData.baseOrbitSize * orbitScale,
+        ease: "back.out(1.7)", // Or try "sine.inOut"
+      });
+    });
+
+    logger.innerHTML = `targetOrbitSpeed: ${(
+      dots[0].baseOrbitSpeed * orbitSpeed
+    ).toFixed(2)}`;
   });
 
+  // resize
   window.addEventListener("resize", () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
