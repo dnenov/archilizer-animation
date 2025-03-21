@@ -7,6 +7,7 @@ export function createDotCluster(
   glowMaterial,
   baseOrbitSpeed,
   orbitRadius,
+  orbitVariance,
   dotSize,
   scene
 ) {
@@ -37,7 +38,7 @@ export function createDotCluster(
       orbitAngleOffset: Math.random() * Math.PI * 2,
       orbitSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2,
       targetOrbitSpeed: baseOrbitSpeed,
-      orbitSize: orbitRadius + (Math.random() - 0.5) * 2.0,
+      orbitSize: orbitRadius + (Math.random() - 0.5) * orbitVariance,
       targetOrbitSize: orbitRadius,
       driftFactor: 0.2,
     });

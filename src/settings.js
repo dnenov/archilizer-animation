@@ -9,6 +9,8 @@ export const settings = {
   ringRadius: 2,
   sOrbitRadius: 0.25,
   lOrbitRadius: 0.1,
+  sOrbitVariance: 5.0,
+  lOrbitVariance: 1.5,
   sBaseOrbitSpeed: 1.5,
   lBaseOrbitSpeed: 0.8,
   dampingFactor: 5,
@@ -21,11 +23,6 @@ export const settings = {
   minRotation: 0,
   maxRotation: 0.5,
   dotGeometry: new THREE.PlaneGeometry(0.1, 0.1),
-  dotMaterial: new FakeGlowMaterial({
-    glowColor: new THREE.Color("#000000"),
-    coreBrightness: 0.3,
-    edgeBrightness: 1.0,
-    falloff: 3.0,
-  }),
+  dotMaterial: new FakeGlowMaterial({}),
   reflectiveMaterial: null,
 };

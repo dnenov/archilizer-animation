@@ -21,7 +21,7 @@ function updateMaterials(camera) {
   });
 }
 
-export function animate(scene, camera, renderer, composer) {
+export function animate(camera, composer) {
   function loop() {
     requestAnimationFrame(loop);
     const deltaTime = clock.getDelta();

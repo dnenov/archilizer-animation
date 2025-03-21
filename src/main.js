@@ -127,6 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
         settings.dotMaterial,
         settings.sBaseOrbitSpeed,
         settings.sOrbitRadius,
+        settings.sOrbitVariance,
         settings.smallDotSize,
         scene,
         reflectiveMaterial
@@ -138,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
         settings.dotMaterial,
         settings.lBaseOrbitSpeed,
         settings.lOrbitRadius,
+        settings.lOrbitVariance,
         settings.largeDotSize,
         scene,
         reflectiveMaterial
@@ -146,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
   // Start the animation loop
-  animate(scene, camera, renderer, composer);
+  animate(camera, composer);
 
   // Event Listeners
   orbitSpeedSlider.addEventListener("input", (event) => {
@@ -160,25 +162,31 @@ document.addEventListener("DOMContentLoaded", function () {
     smoothMoveCamera(camera, targetCameraZ, targetRotation);
   });
 
-  window.addEventListener("wheel", (event) => {
-    event.preventDefault();
-    settings.targetZ += event.deltaY * settings.zoomSpeed;
-    settings.targetZ = THREE.MathUtils.clamp(
-      settings.targetZ,
-      settings.minZ,
-      settings.maxZ
-    );
-    settings.targetRotation += event.deltaY * settings.zoomSpeed;
-    settings.targetRotation = THREE.MathUtils.clamp(
-      settings.targetRotation,
-      settings.minRotation,
-      settings.maxRotation
-    );
-    logger1.innerHTML = `Target rotation: ${settings.targetRotation.toFixed(
-      2
-    )}`;
-    smoothMoveCamera(camera, settings.targetZ, settings.targetRotation);
-  });
+  window.addEventListener(
+    "wheel",
+    (event) => {
+      event.preventDefault();
+      settings.targetZ += event.deltaY * settings.zoomSpeed;
+      settings.targetZ = THREE.MathUtils.clamp(
+        settings.targetZ,
+        settings.minZ,
+        settings.maxZ
+      );
+      settings.targetRotation -= event.deltaY * settings.zoomSpeed;
+      settings.targetRotation = THREE.MathUtils.clamp(
+        settings.targetRotation,
+        settings.minRotation,
+        settings.maxRotation
+      );
+
+      logger.innerHTML = `Target Z: ${settings.targetZ.toFixed(2)}`;
+      logger1.innerHTML = `Target rotation: ${settings.targetRotation.toFixed(
+        2
+      )}`;
+      smoothMoveCamera(camera, settings.targetZ, settings.targetRotation);
+    },
+    { passive: false }
+  );
 
   window.addEventListener("scroll", () => {
     const scrollY = window.scrollY;

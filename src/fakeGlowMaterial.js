@@ -43,9 +43,9 @@ export default class FakeGlowMaterial extends THREE.ShaderMaterial {
   constructor(params = {}) {
     super({
       uniforms: {
-        glowColor: { value: new THREE.Color("#260900") },
+        glowColor: { value: new THREE.Color("#000000") },
         coreRadius: { value: 0.15 },
-        glowRadius: { value: 0.18 },
+        glowRadius: { value: 0.22 },
         coreIntensity: { value: 0.9 },
         glowIntensity: { value: 0.2 },
         time: { value: 0 },
