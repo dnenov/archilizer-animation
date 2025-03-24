@@ -3,7 +3,6 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { SSAOPass } from "three/addons/postprocessing/SSAOPass.js";
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { CopyShader } from "three/addons/shaders/CopyShader.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
