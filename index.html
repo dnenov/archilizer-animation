@@ -47,8 +47,12 @@
         <!-- Add more dummy content as needed -->
       </div>
     </div>
-  
-    <script type="module" src="./src/main.js"></script>
+    <script type="module">
+      // Add this polyfill for Node-style imports
+      window.process = { env: {} };
+    </script>
+    <!-- <script type="module" src="./src/main.js"></script> -->
+    <script type="module" src="https://raw.githubusercontent.com/dnenov/archilizer-animation/main/src/main.js"></script>
     <!-- <script type="module" src="/dist/main.js"></script> -->
   </body>
   

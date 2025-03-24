@@ -1,16 +1,24 @@
-import * as THREE from "three";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { SSAOPass } from "three/addons/postprocessing/SSAOPass.js";
-import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-import { PMREMGenerator } from "three";
-import gsap from "gsap";
-import { createDotCluster } from "./cluster.js";
-import { animate, smoothMoveCamera, dots } from "./animation.js";
-import { settings } from "./settings.js";
+// THREE.js Core
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js";
+
+// THREE.js Addons (absolute CDN paths)
+import { EffectComposer } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js";
+import { SSAOPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/SSAOPass.js";
+import { SMAAPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/SMAAPass.js";
+import { RenderPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/RenderPass.js";
+import { PMREMGenerator } from "https://cdn.jsdelivr.net/npm/three@0.132.2/src/extras/PMREMGenerator.js";
+
+// GSAP
+import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js";
+
+// Your Custom Modules (must use raw GitHub URLs - REPLACE placeholders)
+import { createDotCluster } from "https://raw.githubusercontent.com/dnenov/archilizer-animation/main/src/cluster.js";
+import {
+  animate,
+  smoothMoveCamera,
+  dots,
+} from "https://raw.githubusercontent.com/dnenov/archilizer-animation/main/src/animation.js";
+import { settings } from "https://raw.githubusercontent.com/dnenov/archilization-animation/main/src/settings.js";
 
 function generateNoiseTexture(size = 4) {
   const width = size;
@@ -77,14 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
   ssaoPass.noiseTexture = generateNoiseTexture();
   ssaoPass.noiseTexture.wrapS = THREE.RepeatWrapping;
   ssaoPass.noiseTexture.wrapT = THREE.RepeatWrapping;
-
-  // Replace your bloom pass configuration with:
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.5, // Strength
-    0.1, // Radius
-    0.4 // Threshold
-  );
 
   composer.addPass(renderPass);
   composer.addPass(ssaoPass);

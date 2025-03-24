@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import FakeGlowMaterial from "./fakeGlowMaterial.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js";
+import FakeGlowMaterial from "https://raw.githubusercontent.com/dnenov/archilization-animation/main/src/fakeGlowMaterial.js";
 
 export const settings = {
   numSmall: 500,

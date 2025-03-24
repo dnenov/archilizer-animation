@@ -1,6 +1,5 @@
-import * as THREE from "three";
-import gsap from "gsap";
-import { settings } from "./settings.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js";
+import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js";
 
 export const dots = [];
 const clock = new THREE.Clock();
