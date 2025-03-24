@@ -12,13 +12,9 @@ import { PMREMGenerator } from "https://cdn.jsdelivr.net/npm/three@0.132.2/src/e
 import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js";
 
 // Your Custom Modules (must use raw GitHub URLs - REPLACE placeholders)
-import { createDotCluster } from "https://raw.githubusercontent.com/dnenov/archilizer-animation/main/src/cluster.js";
-import {
-  animate,
-  smoothMoveCamera,
-  dots,
-} from "https://raw.githubusercontent.com/dnenov/archilizer-animation/main/src/animation.js";
-import { settings } from "https://raw.githubusercontent.com/dnenov/archilization-animation/main/src/settings.js";
+import { createDotCluster } from "./cluster.js";
+import { animate, smoothMoveCamera, dots } from "./animation.js";
+import { settings } from "./settings.js";
 
 function generateNoiseTexture(size = 4) {
   const width = size;
