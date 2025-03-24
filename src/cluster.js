@@ -30,18 +30,25 @@ export function createDotCluster(
       .crossVectors(radialDirection, new THREE.Vector3(0, 0, 1))
       .normalize();
 
+    const randomizedSpeed = baseOrbitSpeed + (Math.random() - 0.5) * 1.5;
+    const randomizedSize =
+      orbitRadius + orbitVariance * (Math.random() - 0.5) * 1.0;
+
     clusterDots.push({
       mesh: dot,
       baseTheta: theta,
+      accumulatedPhase: 0,
       basePosition: new THREE.Vector3(x, y, z),
       orbitNormal: orbitNormal,
       orbitAngleOffset: Math.random() * Math.PI * 2,
-      orbitSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2,
-      baseOrbitSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2, // 💾 snapshot
-      targetOrbitSpeed: baseOrbitSpeed,
-      orbitSize: orbitRadius + orbitVariance * (Math.random() - 0.5) * 1.0,
-      baseOrbitSize: orbitRadius + (Math.random() - 0.5) * 2.0, // 💾 snapshot
-      targetOrbitSize: orbitRadius,
+      currentSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2,
+      targetSpeed: baseOrbitSpeed + (Math.random() - 0.5) * 0.2,
+      orbitSpeed: randomizedSpeed,
+      baseOrbitSpeed: randomizedSpeed,
+      targetOrbitSpeed: randomizedSpeed,
+      orbitSize: randomizedSize,
+      baseOrbitSize: randomizedSize,
+      targetOrbitSize: randomizedSize,
       driftFactor: 0.2,
     });
   }

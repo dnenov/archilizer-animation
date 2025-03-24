@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import gsap from "gsap";
 import { settings } from "./settings.js";
 
 export const dots = [];
@@ -26,26 +27,33 @@ export function animate(camera, composer) {
     requestAnimationFrame(loop);
     updateMaterials(camera);
 
+    const deltaTime = clock.getDelta();
+
     dots.forEach((dotData) => {
-      const dot = dotData.mesh;
+      // Smooth speed transition
+      dotData.currentSpeed +=
+        (dotData.targetSpeed - dotData.currentSpeed) * 0.1;
+
+      // Integrate phase
+      dotData.accumulatedPhase += dotData.currentSpeed * deltaTime;
+
+      // Calculate orbital position
       const tangent = new THREE.Vector3()
         .crossVectors(dotData.orbitNormal, new THREE.Vector3(0, 0, 1))
         .normalize();
+
       const orbitOffset = tangent
         .clone()
         .multiplyScalar(dotData.orbitSize)
         .negate();
-      dot.position.set(
-        dotData.basePosition.x + orbitOffset.x,
-        dotData.basePosition.y + orbitOffset.y,
-        dotData.basePosition.z + orbitOffset.z
-      );
 
-      const rotationAngle =
-        clock.getElapsedTime() * dotData.orbitSpeed + dotData.orbitAngleOffset;
-      dot.position.sub(dotData.basePosition);
-      dot.position.applyAxisAngle(dotData.orbitNormal, rotationAngle);
-      dot.position.add(dotData.basePosition);
+      dotData.mesh.position.copy(dotData.basePosition).add(orbitOffset);
+      dotData.mesh.position.sub(dotData.basePosition);
+      dotData.mesh.position.applyAxisAngle(
+        dotData.orbitNormal,
+        dotData.accumulatedPhase + dotData.orbitAngleOffset
+      );
+      dotData.mesh.position.add(dotData.basePosition);
     });
 
     composer.render();
@@ -54,64 +62,31 @@ export function animate(camera, composer) {
   loop();
 }
 
-export function smoothUpdateTarget(dotData, newSpeed) {
-  const startSpeed = dotData.orbitSpeed;
-  const startSize = dotData.orbitSize;
+export function smoothMoveCamera(camera, targetT) {
+  const duration = 2; // Shorter duration for responsiveness
 
-  const endSpeed = newSpeed + (Math.random() - 0.25) * 0.1;
-  const endSize = Math.max(0.1, dotData.orbitSize * newSpeed * 1.2);
+  // Define start/end positions (now based on targetT)
+  const startPos = new THREE.Vector3(0, 0, 15);
+  const endPos = new THREE.Vector3(0, 0, 2);
+  const startRot = 0;
+  const endRot = 3;
 
-  const duration = 1; // seconds
-  const startTime = performance.now();
+  // Calculate target position/rotation for this frame
+  const targetPos = new THREE.Vector3().lerpVectors(startPos, endPos, targetT);
+  const targetRot = THREE.MathUtils.lerp(startRot, endRot, targetT);
 
-  function stepUpdate() {
-    const currentTime = performance.now();
-    const elapsedTime = (currentTime - startTime) / 1000;
-    let alpha = Math.min(elapsedTime / duration, 1);
+  // Smoothly move toward the target (no timeline)
+  gsap.to(camera.position, {
+    x: targetPos.x,
+    y: targetPos.y,
+    z: targetPos.z,
+    duration: duration,
+    ease: "sine.inOut",
+  });
 
-    // easeInOutQuad
-    alpha =
-      alpha < 0.5 ? 2 * alpha * alpha : 1 - Math.pow(-2 * alpha + 2, 2) / 2;
-
-    dotData.targetOrbitSpeed = THREE.MathUtils.lerp(
-      startSpeed,
-      endSpeed,
-      alpha
-    );
-    dotData.targetOrbitSize = THREE.MathUtils.lerp(startSize, endSize, alpha);
-
-    if (alpha < 1) {
-      requestAnimationFrame(stepUpdate);
-    }
-  }
-
-  stepUpdate();
-}
-
-export function smoothMoveCamera(camera, targetZ, targetRotation) {
-  const duration = 1;
-  const startZ = camera.position.z;
-  const startRotation = camera.rotation.z;
-  const startTime = performance.now();
-
-  function stepMove() {
-    const currentTime = performance.now();
-    const elapsedTime = (currentTime - startTime) / 1000;
-    let alpha = Math.min(elapsedTime / duration, 1);
-    alpha =
-      alpha < 0.5 ? 2 * alpha * alpha : 1 - Math.pow(-2 * alpha + 2, 2) / 2;
-
-    camera.position.z = THREE.MathUtils.lerp(startZ, targetZ, alpha);
-    camera.rotation.z = THREE.MathUtils.lerp(
-      startRotation,
-      targetRotation,
-      alpha
-    );
-
-    if (alpha < 1) {
-      requestAnimationFrame(stepMove);
-    }
-  }
-
-  stepMove();
+  gsap.to(camera.rotation, {
+    z: targetRot,
+    duration: duration,
+    ease: "sine.inOut",
+  });
 }

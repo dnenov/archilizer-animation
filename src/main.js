@@ -10,12 +10,7 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { PMREMGenerator } from "three";
 import gsap from "gsap";
 import { createDotCluster } from "./cluster.js";
-import {
-  animate,
-  smoothMoveCamera,
-  smoothUpdateTarget,
-  dots,
-} from "./animation.js";
+import { animate, smoothMoveCamera, dots } from "./animation.js";
 import { settings } from "./settings.js";
 
 function generateNoiseTexture(size = 4) {
@@ -38,7 +33,6 @@ function generateNoiseTexture(size = 4) {
 document.addEventListener("DOMContentLoaded", function () {
   const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
-  const logger1 = document.getElementById("logger1");
 
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
@@ -51,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
     0.1,
     1000
   );
-  camera.position.set(0, 0, 10); // Looking directly at the ring
+  camera.position.set(0, 0, 15); // Looking directly at the ring
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -95,7 +89,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   composer.addPass(renderPass);
   composer.addPass(ssaoPass);
-  // composer.addPass(bloomPass);
   composer.addPass(smaaPass);
 
   smaaPass.renderToScreen = true;
@@ -104,149 +97,88 @@ document.addEventListener("DOMContentLoaded", function () {
   const light = new THREE.AmbientLight(0xffffff, 1);
   scene.add(light);
 
-  // Create dot clusters
-  new RGBELoader()
-    .setPath("../public/textures/") // Folder where your HDR lives
-    .load("royal_esplanade_4k.hdr", (hdr) => {
-      const envMap = pmrem.fromEquirectangular(hdr).texture;
+  const dotsSmall = createDotCluster(
+    settings.numSmall,
+    settings.ringRadius,
+    settings.dotGeometry,
+    settings.dotMaterial,
+    settings.sBaseOrbitSpeed,
+    settings.sOrbitRadius,
+    settings.sOrbitVariance,
+    settings.smallDotSize,
+    scene
+  );
 
-      const reflectiveMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0x000000,
-        metalness: 1.0,
-        roughness: 0.05,
-        transmission: 1.0,
-        thickness: 1.0,
-        ior: 1.5,
-        envMap: envMap,
-        envMapIntensity: 1.5,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.05,
-      });
-
-      scene.environment = envMap;
-
-      // 💡 Now create the clusters with BOTH glow + core
-      const dotsSmall = createDotCluster(
-        settings.numSmall,
-        settings.ringRadius,
-        settings.dotGeometry,
-        settings.dotMaterial,
-        settings.sBaseOrbitSpeed,
-        settings.sOrbitRadius,
-        settings.sOrbitVariance,
-        settings.smallDotSize,
-        scene,
-        reflectiveMaterial
-      );
-      const dotsLarge = createDotCluster(
-        settings.numLargeDots,
-        settings.ringRadius,
-        settings.dotGeometry,
-        settings.dotMaterial,
-        settings.lBaseOrbitSpeed,
-        settings.lOrbitRadius,
-        settings.lOrbitVariance,
-        settings.largeDotSize,
-        scene,
-        reflectiveMaterial
-      );
-      dots.push(...dotsLarge, ...dotsSmall);
-    });
+  const dotsLarge = createDotCluster(
+    settings.numLargeDots,
+    settings.ringRadius,
+    settings.dotGeometry,
+    settings.dotMaterial,
+    settings.lBaseOrbitSpeed,
+    settings.lOrbitRadius,
+    settings.lOrbitVariance,
+    settings.largeDotSize,
+    scene
+  );
+  dots.push(...dotsLarge, ...dotsSmall);
 
   // Start the animation loop
   animate(camera, composer);
 
-  // window.addEventListener(
-  //   "wheel",
-  //   (event) => {
-  //     event.preventDefault();
-  //     settings.targetZ += event.deltaY * settings.zoomSpeed;
-  //     settings.targetZ = THREE.MathUtils.clamp(
-  //       settings.targetZ,
-  //       settings.minZ,
-  //       settings.maxZ
-  //     );
-  //     settings.targetRotation -= event.deltaY * settings.zoomSpeed;
-  //     settings.targetRotation = THREE.MathUtils.clamp(
-  //       settings.targetRotation,
-  //       settings.minRotation,
-  //       settings.maxRotation
-  //     );
-
-  //     // logger.innerHTML = `Target Z: ${settings.targetZ.toFixed(2)}`;
-  //     // logger1.innerHTML = `Target rotation: ${settings.targetRotation.toFixed(
-  //     //   2
-  //     // )}`;
-
-  //     smoothMoveCamera(camera, settings.targetZ, settings.targetRotation);
-
-  //     settings.scrollOrbitMultiplier = THREE.MathUtils.clamp(
-  //       settings.scrollOrbitMultiplier - event.deltaY * 0.001,
-  //       settings.minOrbitMultiplier,
-  //       settings.maxOrbitMultiplier
-  //     );
-
-  //     dots.forEach((dotData) => {
-  //       gsap.to(dotData, {
-  //         duration: 5,
-  //         targetOrbitSpeed:
-  //           dotData.baseOrbitSpeed * settings.scrollOrbitMultiplier,
-  //         targetOrbitSize:
-  //           dotData.baseOrbitSize * settings.scrollOrbitMultiplier,
-  //         ease: "expo.out",
-  //       });
-  //     });
-  //   },
-  //   { passive: false }
-  // );
-
   // scroll
+  let scrollTimeout;
+  let targetT = 0;
   window.addEventListener("scroll", () => {
-    const scrollY = window.scrollY;
-    const t = THREE.MathUtils.clamp(
-      (scrollY - settings.minScrollY) /
-        (settings.maxScrollY - settings.minScrollY),
-      0,
-      1
-    );
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const scrollY = window.scrollY;
+      const t = THREE.MathUtils.clamp(
+        (scrollY - settings.minScrollY) /
+          (settings.maxScrollY - settings.minScrollY),
+        0,
+        1
+      );
 
-    settings.animationProgress = t;
+      settings.animationProgress = t;
 
-    // Use GSAP to animate camera and dots based on t
-    const targetZ = THREE.MathUtils.lerp(settings.maxZ, settings.minZ, t);
-    const targetRotation = THREE.MathUtils.lerp(
-      settings.minRotation,
-      settings.maxRotation,
-      t
-    );
+      logger.innerHTML = `animation stage: ${t}`;
 
-    smoothMoveCamera(camera, targetZ, targetRotation);
+      // Camera animation (unchanged)
+      targetT = THREE.MathUtils.clamp(
+        (scrollY - settings.minScrollY) /
+          (settings.maxScrollY - settings.minScrollY),
+        0,
+        1
+      );
 
-    const orbitSpeed = THREE.MathUtils.lerp(
-      settings.minSpeedFactor,
-      settings.maxSpeedFactor,
-      t
-    );
+      // Immediately update camera target (no nested animation)
+      smoothMoveCamera(camera, targetT);
 
-    const orbitScale = THREE.MathUtils.lerp(
-      settings.minOrbitMultiplier,
-      settings.maxOrbitMultiplier,
-      t
-    );
+      const orbitScale = THREE.MathUtils.lerp(
+        settings.minOrbitMultiplier,
+        settings.maxOrbitMultiplier,
+        t
+      );
 
-    console.log();
-    dots.forEach((dotData) => {
-      gsap.to(dotData, {
-        duration: 0.1,
-        targetOrbitSpeed: dotData.baseOrbitSpeed * orbitSpeed,
-        targetOrbitSize: dotData.baseOrbitSize * orbitScale,
-        ease: "back.out(1.7)", // Or try "sine.inOut"
+      const speedMultiplier = THREE.MathUtils.lerp(
+        settings.minSpeedFactor,
+        settings.maxSpeedFactor,
+        t * 2.5
+      );
+
+      // Update dots with GSAP
+      dots.forEach((dotData, i) => {
+        dotData.targetSpeed = dotData.baseOrbitSpeed * speedMultiplier;
+
+        gsap.to(dotData, {
+          duration: 5, // Slightly longer duration for smoother transition
+          targetOrbitSize: dotData.baseOrbitSize * orbitScale,
+          ease: "sine.inOut",
+          delay: 0.002,
+          overwrite: "auto",
+        });
       });
-    });
-
-    logger.innerHTML = `targetOrbitSpeed: ${(
-      dots[0].baseOrbitSpeed * orbitSpeed
-    ).toFixed(2)}`;
+    }, 50);
   });
 
   // resize
