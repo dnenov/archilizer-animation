@@ -1,15 +1,15 @@
-// THREE.js Core
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js";
+// Core THREE
+import * as THREE from "https://esm.sh/three@0.132.2";
 
-// THREE.js Addons (UPDATE THESE)
-import { EffectComposer } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js";
-import { SSAOPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/SSAOPass.js";
-import { SMAAPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/SMAAPass.js";
-import { RenderPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/RenderPass.js";
-import { PMREMGenerator } from "https://cdn.jsdelivr.net/npm/three@0.132.2/src/extras/PMREMGenerator.js";
+// Postprocessing (rewritten automatically)
+import { EffectComposer } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js";
+import { SSAOPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/SSAOPass.js";
+import { SMAAPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/SMAAPass.js";
+import { RenderPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/RenderPass.js";
+import { PMREMGenerator } from "https://esm.sh/three@0.132.2/src/extras/PMREMGenerator.js";
 
 // GSAP
-import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js";
+import gsap from "https://esm.sh/gsap@3.11.4";
 
 // Your Custom Modules (must use raw GitHub URLs - REPLACE placeholders)
 import { createDotCluster } from "./cluster.js";

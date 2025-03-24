@@ -1,4 +1,5 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js";
+import gsap from "https://esm.sh/gsap@3.11.4";
+import * as THREE from "https://esm.sh/three@0.132.2";
 
 export function createDotCluster(
   numDots,
