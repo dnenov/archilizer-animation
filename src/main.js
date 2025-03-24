@@ -1,7 +1,7 @@
 // THREE.js Core
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js";
 
-// THREE.js Addons (absolute CDN paths)
+// THREE.js Addons (UPDATE THESE)
 import { EffectComposer } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js";
 import { SSAOPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/SSAOPass.js";
 import { SMAAPass } from "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/SMAAPass.js";
