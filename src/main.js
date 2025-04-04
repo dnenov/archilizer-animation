@@ -189,6 +189,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     smaaPass.setSize(width, height);
     ssaoPass.setSize(width, height);
-    bloomPass.setSize(width, height);
   });
 });
