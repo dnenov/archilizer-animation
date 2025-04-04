@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x00ffff);
+  scene.background = new THREE.Color(0xffffff);
   // scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
   const camera = new THREE.PerspectiveCamera(
@@ -123,13 +123,13 @@ document.addEventListener("DOMContentLoaded", function () {
   dots.push(...dotsLarge, ...dotsSmall);
 
   // Start the animation loop
-  // animate(camera, composer);
+  animate(camera, composer);
 
-  function basicLoop() {
-    requestAnimationFrame(basicLoop);
-    renderer.render(scene, camera);
-  }
-  basicLoop();
+  // function basicLoop() {
+  //   requestAnimationFrame(basicLoop);
+  //   renderer.render(scene, camera);
+  // }
+  // basicLoop();
 
   // scroll
   let scrollTimeout;
