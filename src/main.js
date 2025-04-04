@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
 
+  console.log("container size:", container.clientWidth, container.clientHeight);
+
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
@@ -50,17 +52,20 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   camera.position.set(0, 0, 15); // Looking directly at the ring
 
+  const width = container.clientWidth || window.innerWidth;
+  const height = container.clientHeight || window.innerHeight;
+
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     powerPreference: "high-performance",
   });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
   container.appendChild(renderer.domElement);
 
   const pmrem = new PMREMGenerator(renderer);
 
   const composer = new EffectComposer(renderer);
-  composer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(width, height);
 
   const renderPass = new RenderPass(scene, camera);
 
@@ -118,7 +123,13 @@ document.addEventListener("DOMContentLoaded", function () {
   dots.push(...dotsLarge, ...dotsSmall);
 
   // Start the animation loop
-  animate(camera, composer);
+  // animate(camera, composer);
+
+  function basicLoop() {
+    requestAnimationFrame(basicLoop);
+    renderer.render(scene, camera);
+  }
+  basicLoop();
 
   // scroll
   let scrollTimeout;

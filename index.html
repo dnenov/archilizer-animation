@@ -2,59 +2,60 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Three.js Animation</title>
-    <style>
-        body {
-            margin: 0;
-            background-color: white;
-            font-family: sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Animation</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: white;
+      font-family: sans-serif;
+    }
 
-        #three-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            transform: translateX(25%);
-            pointer-events: none; /* Optional: makes sure scroll & clicks go through */
-            z-index: -1;
-        }
+    #three-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      transform: translateX(25%);
+      pointer-events: none;
+      /* Optional: makes sure scroll & clicks go through */
+      /* z-index: -1; */
+    }
 
-        canvas {
-            display: block;
-        }
-    </style>
+    canvas {
+      display: block;
+    }
+  </style>
 </head>
 
-  <body>
-    
-    <!-- Fixed full-screen Three.js container -->
-    <div id="three-container">
-        <div style="display: flex; flex-direction: column; position: absolute; top: 10px; right: 20px; z-index: 90;">
-            <p id="logger" style="color: black; font-family: Arial, sans-serif;">Camera Z: 0</p>
-            <p id="logger1" style="color: black; font-family: Arial, sans-serif;">Target Z: 0</p>
-          </div>
+<body>
+
+  <!-- Fixed full-screen Three.js container -->
+  <div id="three-container">
+    <div style="display: flex; flex-direction: column; position: absolute; top: 10px; right: 20px; z-index: 90;">
+      <p id="logger" style="color: black; font-family: Arial, sans-serif;">Camera Z: 0</p>
+      <p id="logger1" style="color: black; font-family: Arial, sans-serif;">Target Z: 0</p>
     </div>
-  
-    <!-- Scrollable content below -->
-    <div style="height: 3000px;">
-      <div style="padding: 100px; font-family: sans-serif;">
-        <h1>Hello Scroll World</h1>
-        <p>Scroll down to interact with the animation.</p>
-        <!-- Add more dummy content as needed -->
-      </div>
+  </div>
+
+  <!-- Scrollable content below -->
+  <div style="height: 3000px;">
+    <div style="padding: 100px; font-family: sans-serif;">
+      <h1>Hello Scroll World</h1>
+      <p>Scroll down to interact with the animation.</p>
+      <!-- Add more dummy content as needed -->
     </div>
-    <script type="module">
-      // Add this polyfill for Node-style imports
-      window.process = { env: {} };
-    </script>
-    <script type="module" src="./src/main.js"></script>
-    <!-- <script type="module" src="/archilizer-animation/src/main.js"></script> -->
-    <!-- <script type="module" src="/dist/main.js"></script> -->
-  </body>
-  
+  </div>
+  <script type="module">
+    // Add this polyfill for Node-style imports
+    window.process = { env: {} };
+  </script>
+  <script type="module" src="./src/main.js"></script>
+  <!-- <script type="module" src="/archilizer-animation/src/main.js"></script> -->
+  <!-- <script type="module" src="/dist/main.js"></script> -->
+</body>
+
 
 </html>
