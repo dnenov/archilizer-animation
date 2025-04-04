@@ -52,8 +52,8 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   camera.position.set(0, 0, 15); // Looking directly at the ring
 
-  const width = container.clientWidth || window.innerWidth;
-  const height = container.clientHeight || window.innerHeight;
+  const width = 1920;
+  const height = 1080;
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
