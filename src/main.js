@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xffffff);
+  scene.background = new THREE.Color(0x00ffff);
   // scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
   const camera = new THREE.PerspectiveCamera(
