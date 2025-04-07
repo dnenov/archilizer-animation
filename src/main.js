@@ -54,39 +54,14 @@ document.addEventListener("DOMContentLoaded", function () {
   scene.background = new THREE.Color(0xffffff);
   // scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
-  // const camera = new THREE.PerspectiveCamera(
-  //   75,
-  //   window.innerWidth / window.innerHeight,
-  //   0.1,
-  //   1000
-  // );
   camera.position.set(0, 0, 15); // Looking directly at the ring
 
   const renderPass = new RenderPass(scene, camera);
   const ssaoPass = new SSAOPass(scene, camera, 1, 1);
   const smaaPass = new SMAAPass(1, 1);
 
-  // const renderer = new THREE.WebGLRenderer({
-  //   antialias: true,
-  //   powerPreference: "high-performance",
-  // });
-  // renderer.setSize(1, 1);
   container.appendChild(renderer.domElement);
 
-  // const pmrem = new PMREMGenerator(renderer);
-
-  // const composer = new EffectComposer(renderer);
-  // composer.setSize(1, 1);
-
-  // const renderPass = new RenderPass(scene, camera);
-
-  // Configure SSAO Pass
-  // const ssaoPass = new SSAOPass(
-  //   scene,
-  //   camera,
-  //   window.innerWidth,
-  //   window.innerHeight
-  // );
   ssaoPass.kernelRadius = 0.65;
   ssaoPass.minDistance = 0.001;
   ssaoPass.maxDistance = 0.1;
@@ -144,57 +119,49 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("scroll", () => {
     handleScroll(window.scrollY);
   });
-
   function handleScroll(scrollY) {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      const t = THREE.MathUtils.clamp(
-        (scrollY - settings.minScrollY) /
-          (settings.maxScrollY - settings.minScrollY),
-        0,
-        1
-      );
+    // Calculate normalized scroll
+    const t = THREE.MathUtils.clamp(
+      (scrollY - settings.minScrollY) /
+        (settings.maxScrollY - settings.minScrollY),
+      0,
+      1
+    );
 
-      settings.animationProgress = t;
+    settings.animationProgress = t;
+    logger.innerHTML = `animation stage: ${t}`;
+    targetT = t;
 
-      logger.innerHTML = `animation stage: ${t}`;
+    // Update camera immediately
+    smoothMoveCamera(camera, t);
 
-      // Camera animation (unchanged)
-      targetT = THREE.MathUtils.clamp(
-        (scrollY - settings.minScrollY) /
-          (settings.maxScrollY - settings.minScrollY),
-        0,
-        1
-      );
+    const orbitScale = THREE.MathUtils.lerp(
+      settings.minOrbitMultiplier,
+      settings.maxOrbitMultiplier,
+      t
+    );
 
-      // Immediately update camera target (no nested animation)
-      smoothMoveCamera(camera, targetT);
+    const speedMultiplier = THREE.MathUtils.lerp(
+      settings.minSpeedFactor,
+      settings.maxSpeedFactor,
+      t * 2.5
+    );
 
-      const orbitScale = THREE.MathUtils.lerp(
-        settings.minOrbitMultiplier,
-        settings.maxOrbitMultiplier,
-        t
-      );
+    // Immediately update base speed (for consistency)
+    dots.forEach((dotData) => {
+      dotData.targetSpeed = dotData.baseOrbitSpeed * speedMultiplier;
+    });
 
-      const speedMultiplier = THREE.MathUtils.lerp(
-        settings.minSpeedFactor,
-        settings.maxSpeedFactor,
-        t * 2.5
-      );
-
-      // Update dots with GSAP
-      dots.forEach((dotData, i) => {
-        dotData.targetSpeed = dotData.baseOrbitSpeed * speedMultiplier;
-
-        gsap.to(dotData, {
-          duration: 5, // Slightly longer duration for smoother transition
-          targetOrbitSize: dotData.baseOrbitSize * orbitScale,
-          ease: "sine.inOut",
-          delay: 0.002,
-          overwrite: "auto",
-        });
+    // Smoothly tween targetOrbitSize only (still looks nice)
+    gsap.killTweensOf(dots); // kill any previous tweens
+    dots.forEach((dotData) => {
+      gsap.to(dotData, {
+        duration: 1.2,
+        targetOrbitSize: dotData.baseOrbitSize * orbitScale,
+        ease: "sine.inOut",
+        overwrite: "auto",
       });
-    }, 50);
+    });
   }
 
   // resize - in development
@@ -222,7 +189,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     switch (type) {
       case "scroll":
-        console.log(`scroll, scroll, scroll your boat`);
         handleScroll(payload.scrollY);
         break;
       case "resize":
