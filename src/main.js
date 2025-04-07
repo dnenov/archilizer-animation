@@ -49,10 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const composer = new EffectComposer(renderer);
   composer.setSize(1, 1);
 
-  const renderPass = new RenderPass(scene, camera);
-  const ssaoPass = new SSAOPass(scene, camera, 1, 1);
-  const smaaPass = new SMAAPass(1, 1);
-
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
@@ -65,6 +61,10 @@ document.addEventListener("DOMContentLoaded", function () {
   //   1000
   // );
   camera.position.set(0, 0, 15); // Looking directly at the ring
+
+  const renderPass = new RenderPass(scene, camera);
+  const ssaoPass = new SSAOPass(scene, camera, 1, 1);
+  const smaaPass = new SMAAPass(1, 1);
 
   // const renderer = new THREE.WebGLRenderer({
   //   antialias: true,
