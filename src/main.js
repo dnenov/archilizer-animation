@@ -36,6 +36,9 @@ function generateNoiseTexture(size = 4) {
 document.addEventListener("DOMContentLoaded", function () {
   const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
+  const isDebugMode =
+    window.location.hostname === "localhost" ||
+    window.location.protocol === "file:";
 
   const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({
@@ -114,15 +117,23 @@ document.addEventListener("DOMContentLoaded", function () {
   // scroll
   let scrollTimeout;
   let targetT = 0;
+  let latestScrollY = 0;
+  let scrollNeedsUpdate = false;
 
-  // Handle scroll during development
-  window.addEventListener("scroll", () => {
-    handleScroll(window.scrollY);
-  });
   function handleScroll(scrollY) {
-    // Calculate normalized scroll
+    latestScrollY = scrollY;
+    scrollNeedsUpdate = true;
+  }
+
+  function updateLoop() {
+    requestAnimationFrame(updateLoop);
+
+    if (!scrollNeedsUpdate) return;
+
+    scrollNeedsUpdate = false;
+
     const t = THREE.MathUtils.clamp(
-      (scrollY - settings.minScrollY) /
+      (latestScrollY - settings.minScrollY) /
         (settings.maxScrollY - settings.minScrollY),
       0,
       1
@@ -132,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
     logger.innerHTML = `animation stage: ${t}`;
     targetT = t;
 
-    // Update camera immediately
     smoothMoveCamera(camera, t);
 
     const orbitScale = THREE.MathUtils.lerp(
@@ -147,13 +157,11 @@ document.addEventListener("DOMContentLoaded", function () {
       t * 2.5
     );
 
-    // Immediately update base speed (for consistency)
     dots.forEach((dotData) => {
       dotData.targetSpeed = dotData.baseOrbitSpeed * speedMultiplier;
     });
 
-    // Smoothly tween targetOrbitSize only (still looks nice)
-    gsap.killTweensOf(dots); // kill any previous tweens
+    gsap.killTweensOf(dots);
     dots.forEach((dotData) => {
       gsap.to(dotData, {
         duration: 1.2,
@@ -164,13 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // resize - in development
-  window.addEventListener("resize", () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    handleResize(width, height);
-  });
+  updateLoop(); // start it
 
   function handleResize(width, height) {
     camera.aspect = width / height;
@@ -201,5 +203,24 @@ document.addEventListener("DOMContentLoaded", function () {
       default:
         console.warn("Unknown message type:", type);
     }
+  });
+
+  // If we are in development, initialize using the current window properties
+  if (isDebugMode) {
+    handleResize(window.innerWidth, window.innerHeight);
+    handleScroll(window.scrollY);
+  }
+
+  // Handle scroll during development
+  window.addEventListener("scroll", () => {
+    handleScroll(window.scrollY);
+  });
+
+  // resize - in development
+  window.addEventListener("resize", () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    handleResize(width, height);
   });
 });
