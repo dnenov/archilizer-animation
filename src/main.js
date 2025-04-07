@@ -37,52 +37,63 @@ document.addEventListener("DOMContentLoaded", function () {
   const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
 
-  console.log("container size:", container.clientWidth, container.clientHeight);
+  const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: "high-performance",
+  });
+  renderer.setSize(1, 1);
+  container.appendChild(renderer.domElement);
+
+  const pmrem = new PMREMGenerator(renderer);
+  const composer = new EffectComposer(renderer);
+  composer.setSize(1, 1);
+
+  const renderPass = new RenderPass(scene, camera);
+  const ssaoPass = new SSAOPass(scene, camera, 1, 1);
+  const smaaPass = new SMAAPass(1, 1);
 
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
   // scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
+  // const camera = new THREE.PerspectiveCamera(
+  //   75,
+  //   window.innerWidth / window.innerHeight,
+  //   0.1,
+  //   1000
+  // );
   camera.position.set(0, 0, 15); // Looking directly at the ring
 
-  const width = 1920;
-  const height = 1080;
-
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    powerPreference: "high-performance",
-  });
-  renderer.setSize(width, height);
+  // const renderer = new THREE.WebGLRenderer({
+  //   antialias: true,
+  //   powerPreference: "high-performance",
+  // });
+  // renderer.setSize(1, 1);
   container.appendChild(renderer.domElement);
 
-  const pmrem = new PMREMGenerator(renderer);
+  // const pmrem = new PMREMGenerator(renderer);
 
-  const composer = new EffectComposer(renderer);
-  composer.setSize(width, height);
+  // const composer = new EffectComposer(renderer);
+  // composer.setSize(1, 1);
 
-  const renderPass = new RenderPass(scene, camera);
+  // const renderPass = new RenderPass(scene, camera);
 
   // Configure SSAO Pass
-  const ssaoPass = new SSAOPass(
-    scene,
-    camera,
-    window.innerWidth,
-    window.innerHeight
-  );
+  // const ssaoPass = new SSAOPass(
+  //   scene,
+  //   camera,
+  //   window.innerWidth,
+  //   window.innerHeight
+  // );
   ssaoPass.kernelRadius = 0.65;
   ssaoPass.minDistance = 0.001;
   ssaoPass.maxDistance = 0.1;
   ssaoPass.sampleCount = 64;
   ssaoPass.output = SSAOPass.OUTPUT.Default;
 
-  const smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
+  // const smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
   ssaoPass.noiseTexture = generateNoiseTexture();
   ssaoPass.noiseTexture.wrapS = THREE.RepeatWrapping;
   ssaoPass.noiseTexture.wrapT = THREE.RepeatWrapping;
@@ -125,19 +136,18 @@ document.addEventListener("DOMContentLoaded", function () {
   // Start the animation loop
   animate(camera, composer);
 
-  // function basicLoop() {
-  //   requestAnimationFrame(basicLoop);
-  //   renderer.render(scene, camera);
-  // }
-  // basicLoop();
-
   // scroll
   let scrollTimeout;
   let targetT = 0;
+
+  // Handle scroll during development
   window.addEventListener("scroll", () => {
+    handleScroll(window.scrollY);
+  });
+
+  function handleScroll(scrollY) {
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
-      const scrollY = window.scrollY;
       const t = THREE.MathUtils.clamp(
         (scrollY - settings.minScrollY) /
           (settings.maxScrollY - settings.minScrollY),
@@ -185,20 +195,45 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     }, 50);
-  });
+  }
 
-  // resize
+  // resize - in development
   window.addEventListener("resize", () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
+    handleResize(width, height);
+  });
+
+  function handleResize(width, height) {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
 
     renderer.setSize(width, height);
     composer.setSize(width, height);
-
-    smaaPass.setSize(width, height);
     ssaoPass.setSize(width, height);
+    smaaPass.setSize(width, height);
+  }
+
+  // Add an ivenet listener for incoming communication
+  window.addEventListener("message", (event) => {
+    const { type, payload } = event.data;
+    if (!type || !payload) return;
+
+    switch (type) {
+      case "scroll":
+        console.log(`scroll, scroll, scroll your boat`);
+        handleScroll(payload.scrollY);
+        break;
+      case "resize":
+        handleResize(payload.width, payload.height);
+        break;
+      case "init":
+        handleResize(payload.width, payload.height);
+        handleScroll(payload.scrollY);
+        break;
+      default:
+        console.warn("Unknown message type:", type);
+    }
   });
 });
