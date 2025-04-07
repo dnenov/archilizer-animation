@@ -72,7 +72,6 @@ document.addEventListener("DOMContentLoaded", function () {
   ssaoPass.sampleCount = 64;
   ssaoPass.output = SSAOPass.OUTPUT.Default;
 
-  // const smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
   ssaoPass.noiseTexture = generateNoiseTexture();
   ssaoPass.noiseTexture.wrapS = THREE.RepeatWrapping;
   ssaoPass.noiseTexture.wrapT = THREE.RepeatWrapping;
@@ -232,15 +231,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const scrollY = window.scrollY;
     const stage = getStageFromScroll(scrollY, 0, maxScrollY);
     animateToStage(stage);
-
-    window.addEventListener("scroll", () => {
-      console.log("scrolling..");
-      const stage = getStageFromScroll(window.scrollY, 0, maxScrollY);
-      animateToStage(stage);
-    });
-
-    window.addEventListener("resize", () => {
-      handleResize(window.innerWidth, window.innerHeight);
-    });
   }
+
+  window.addEventListener("scroll", () => {
+    console.log("scrolling..");
+    const stage = getStageFromScroll(window.scrollY, 0, maxScrollY);
+    animateToStage(stage);
+  });
+
+  window.addEventListener("resize", () => {
+    handleResize(window.innerWidth, window.innerHeight);
+  });
 });

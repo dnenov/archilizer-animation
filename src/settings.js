@@ -3,7 +3,7 @@ import FakeGlowMaterial from "./fakeGlowMaterial.js";
 
 export const settings = {
   ringRadius: 0.8,
-  transitionDuration: 0.8, // gsap transitions - smaller is tighter
+  transitionDuration: 0.4, // gsap transitions - smaller is tighter
   numSmall: 500,
   numLargeDots: 200,
   smallDotSize: 0.2,
