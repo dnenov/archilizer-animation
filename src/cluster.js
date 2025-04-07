@@ -10,6 +10,7 @@ export function createDotCluster(
   orbitRadius,
   orbitVariance,
   dotSize,
+  ringGroup,
   scene
 ) {
   const clusterDots = [];
@@ -24,7 +25,8 @@ export function createDotCluster(
     const scaleFactor = Math.random() * dotSize + 0.4;
     dot.scale.set(scaleFactor, scaleFactor, scaleFactor);
     dot.position.set(x, y, z);
-    scene.add(dot);
+    // scene.add(dot);
+    ringGroup.add(dot);
 
     const radialDirection = new THREE.Vector3(x, y, z).normalize();
     const orbitNormal = new THREE.Vector3()

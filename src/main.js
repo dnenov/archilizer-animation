@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
   scene.background = new THREE.Color(0xffffff);
   // scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
-  camera.position.set(0, 0, 15); // Looking directly at the ring
+  camera.position.set(-4, 0, 8); // Looking directly at the ring
 
   const renderPass = new RenderPass(scene, camera);
   const ssaoPass = new SSAOPass(scene, camera, 1, 1);
@@ -87,6 +87,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const light = new THREE.AmbientLight(0xffffff, 1);
   scene.add(light);
 
+  const ringGroup = new THREE.Group();
+  scene.add(ringGroup);
+
   const dotsSmall = createDotCluster(
     settings.numSmall,
     settings.ringRadius,
@@ -96,6 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
     settings.sOrbitRadius,
     settings.sOrbitVariance,
     settings.smallDotSize,
+    ringGroup,
     scene
   );
 
@@ -108,21 +112,43 @@ document.addEventListener("DOMContentLoaded", function () {
     settings.lOrbitRadius,
     settings.lOrbitVariance,
     settings.largeDotSize,
+    ringGroup,
     scene
   );
 
   dots.push(...dotsLarge, ...dotsSmall);
 
   // Start the animation loop
-  animate(camera, scene, composer);
+  animate(camera, scene, composer, ringGroup);
 
   function animateToStage(stage) {
     const t = (stage - 1) * 0.25 + 0.125;
 
-    settings.animationProgress = t;
-    logger.innerHTML = `Animation Stage: ${stage}`;
+    // Expand the ring instead of moving camera
+    const radiusScale = THREE.MathUtils.lerp(settings.ringRadius, 10, t);
+    gsap.to(settings, {
+      duration: settings.transitionDuration,
+      currentRingRadius: settings.ringRadius * radiusScale,
+      ease: "sine.inOut",
+    });
 
-    smoothMoveCamera(camera, t);
+    settings.animationProgress = t;
+    // smoothMoveCamera(camera, t); // now only rotates
+
+    // Rotate the ring
+    gsap.to(ringGroup.rotation, {
+      z: THREE.MathUtils.degToRad(t * 120),
+      duration: settings.transitionDuration,
+      ease: "sine.inOut",
+    });
+
+    // Pan the ring
+    gsap.to(ringGroup.position, {
+      x: THREE.MathUtils.lerp(0, -4.5, t),
+      y: THREE.MathUtils.lerp(0, 4.5, t), // move slightly up at higher stages
+      duration: settings.transitionDuration,
+      ease: "sine.inOut",
+    });
 
     const orbitScale = THREE.MathUtils.lerp(
       settings.minOrbitMultiplier,
@@ -136,14 +162,20 @@ document.addEventListener("DOMContentLoaded", function () {
       t * 2.5
     );
 
+    // 🔁 Update base positions of all static dots
     dots.forEach((dotData) => {
       dotData.targetSpeed = dotData.baseOrbitSpeed * speedMultiplier;
+
+      const theta = dotData.baseTheta; // already stored during creation
+      const r = settings.currentRingRadius;
+      dotData.basePosition.set(r * Math.cos(theta), r * Math.sin(theta), 0);
     });
 
+    // 🎯 Smoothly transition orbit size
     gsap.killTweensOf(dots);
     dots.forEach((dotData) => {
       gsap.to(dotData, {
-        duration: 1.0,
+        duration: settings.transitionDuration,
         targetOrbitSize: dotData.baseOrbitSize * orbitScale,
         ease: "sine.inOut",
         overwrite: "auto",

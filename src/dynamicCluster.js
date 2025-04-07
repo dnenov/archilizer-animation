@@ -8,7 +8,7 @@ const SPAWN_INTERVAL = 0.1;
 let spawnTimer = 0;
 let nextSpawnInterval = SPAWN_INTERVAL;
 
-export function spawnDynamicDot(scene) {
+export function spawnDynamicDot(ringGroup) {
   const theta = Math.random() * Math.PI * 2;
   const x = settings.ringRadius * Math.cos(theta);
   const y = settings.ringRadius * Math.sin(theta);
@@ -21,7 +21,7 @@ export function spawnDynamicDot(scene) {
   const scale = Math.random() * 0.8 + 0.2;
   mesh.scale.set(scale, scale, scale);
   mesh.position.set(x, y, z);
-  scene.add(mesh);
+  ringGroup.add(mesh);
 
   const radialDir = new THREE.Vector3(x, y, z).normalize();
   const orbitNormal = new THREE.Vector3()
@@ -54,11 +54,11 @@ export function spawnDynamicDot(scene) {
   dynamicDots.push(dot);
 }
 
-export function updateDynamicDots(scene, deltaTime) {
+export function updateDynamicDots(ringGroup, deltaTime) {
   // Spawn new if under max
   spawnTimer += deltaTime;
   if (spawnTimer > nextSpawnInterval && dynamicDots.length < MAX_DYNAMIC_DOTS) {
-    spawnDynamicDot(scene);
+    spawnDynamicDot(ringGroup);
     spawnTimer = 0;
     nextSpawnInterval = 0.01 + Math.random() * 0.05;
   }
@@ -82,7 +82,7 @@ export function updateDynamicDots(scene, deltaTime) {
     }
 
     if (dot.life <= -fadeBuffer) {
-      scene.remove(dot.mesh);
+      ringGroup.remove(dot.mesh);
       dynamicDots.splice(i, 1);
       continue;
     }
@@ -91,7 +91,7 @@ export function updateDynamicDots(scene, deltaTime) {
     dot.globalAngle += dot.globalSpeed * deltaTime;
 
     // Update base position (rotating slowly around center)
-    const radius = settings.ringRadius;
+    const radius = settings.currentRingRadius;
     const bx = radius * Math.cos(dot.globalAngle);
     const by = radius * Math.sin(dot.globalAngle);
     dot.basePosition.set(bx, by, 0);

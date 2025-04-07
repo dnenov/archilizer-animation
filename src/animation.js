@@ -1,6 +1,7 @@
 import * as THREE from "https://esm.sh/three@0.132.2";
 import gsap from "https://esm.sh/gsap@3.11.4";
 import { updateDynamicDots, dynamicDots } from "./dynamicCluster.js";
+import { settings } from "./settings.js";
 
 export const dots = [];
 const clock = new THREE.Clock();
@@ -22,19 +23,26 @@ function updateMaterials(camera) {
   });
 }
 
-export function animate(camera, scene, composer) {
+export function animate(camera, scene, composer, ringGroup) {
   function loop() {
     requestAnimationFrame(loop);
     updateMaterials(camera);
 
     const deltaTime = clock.getDelta();
 
-    updateDynamicDots(scene, deltaTime);
+    updateDynamicDots(ringGroup, deltaTime);
 
     dots.forEach((dotData) => {
       // Smooth speed transition
       dotData.currentSpeed +=
         (dotData.targetSpeed - dotData.currentSpeed) * 0.1;
+
+      // Smooth orbit radius transition
+      dotData.orbitSize += (dotData.targetOrbitSize - dotData.orbitSize) * 0.1;
+
+      const r = settings.currentRingRadius;
+      const theta = dotData.baseTheta;
+      dotData.basePosition.set(r * Math.cos(theta), r * Math.sin(theta), 0);
 
       // Integrate phase
       dotData.accumulatedPhase += dotData.currentSpeed * deltaTime;
@@ -65,30 +73,30 @@ export function animate(camera, scene, composer) {
 }
 
 export function smoothMoveCamera(camera, targetT) {
-  const duration = 2; // Shorter duration for responsiveness
+  const duration = 0.8; // Shorter duration for responsiveness
 
   // Define start/end positions (now based on targetT)
   const startPos = new THREE.Vector3(0, 0, 15);
   const endPos = new THREE.Vector3(0, 0, 2);
   const startRot = 0;
-  const endRot = 3;
+  const endRot = -1.5;
 
   // Calculate target position/rotation for this frame
   const targetPos = new THREE.Vector3().lerpVectors(startPos, endPos, targetT);
   const targetRot = THREE.MathUtils.lerp(startRot, endRot, targetT);
 
   // Smoothly move toward the target (no timeline)
-  gsap.to(camera.position, {
-    x: targetPos.x,
-    y: targetPos.y,
-    z: targetPos.z,
-    duration: duration,
-    ease: "sine.inOut",
-  });
+  // gsap.to(camera.position, {
+  //   x: targetPos.x,
+  //   y: targetPos.y,
+  //   z: targetPos.z,
+  //   duration: duration,
+  //   ease: "sine.inOut",
+  // });
 
-  gsap.to(camera.rotation, {
-    z: targetRot,
-    duration: duration,
-    ease: "sine.inOut",
-  });
+  // gsap.to(camera.rotation, {
+  //   z: targetRot,
+  //   duration: duration,
+  //   ease: "sine.inOut",
+  // });
 }
