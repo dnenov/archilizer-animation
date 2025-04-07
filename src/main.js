@@ -114,34 +114,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Start the animation loop
   animate(camera, composer);
 
-  // scroll
-  let scrollTimeout;
-  let targetT = 0;
-  let latestScrollY = 0;
-  let scrollNeedsUpdate = false;
-
-  function handleScroll(scrollY) {
-    latestScrollY = scrollY;
-    scrollNeedsUpdate = true;
-  }
-
-  function updateLoop() {
-    requestAnimationFrame(updateLoop);
-
-    if (!scrollNeedsUpdate) return;
-
-    scrollNeedsUpdate = false;
-
-    const t = THREE.MathUtils.clamp(
-      (latestScrollY - settings.minScrollY) /
-        (settings.maxScrollY - settings.minScrollY),
-      0,
-      1
-    );
+  function animateToStage(stage) {
+    const t = (stage - 1) * 0.25 + 0.125;
 
     settings.animationProgress = t;
-    logger.innerHTML = `animation stage: ${t}`;
-    targetT = t;
+    logger.innerHTML = `Animation Stage: ${stage}`;
 
     smoothMoveCamera(camera, t);
 
@@ -164,15 +141,13 @@ document.addEventListener("DOMContentLoaded", function () {
     gsap.killTweensOf(dots);
     dots.forEach((dotData) => {
       gsap.to(dotData, {
-        duration: 1.2,
+        duration: 1.0,
         targetOrbitSize: dotData.baseOrbitSize * orbitScale,
         ease: "sine.inOut",
         overwrite: "auto",
       });
     });
   }
-
-  updateLoop(); // start it
 
   function handleResize(width, height) {
     camera.aspect = width / height;
@@ -184,43 +159,53 @@ document.addEventListener("DOMContentLoaded", function () {
     smaaPass.setSize(width, height);
   }
 
-  // Add an ivenet listener for incoming communication
+  // ✅ Final message handler
   window.addEventListener("message", (event) => {
     const { type, payload } = event.data;
     if (!type || !payload) return;
 
     switch (type) {
-      case "scroll":
-        handleScroll(payload.scrollY);
+      case "setStage":
+        console.log(`setting the stage to ${payload.stage}`);
+        animateToStage(payload.stage);
         break;
       case "resize":
         handleResize(payload.width, payload.height);
         break;
       case "init":
         handleResize(payload.width, payload.height);
-        handleScroll(payload.scrollY);
+        const scrollY = payload.scrollY;
+        const stage = getStageFromScroll(scrollY, 0, 300);
+        animateToStage(stage);
         break;
       default:
         console.warn("Unknown message type:", type);
     }
   });
 
-  // If we are in development, initialize using the current window properties
-  if (isDebugMode) {
-    handleResize(window.innerWidth, window.innerHeight);
-    handleScroll(window.scrollY);
+  // ✅ Add this helper in main.js (same as Webflow's)
+  function getStageFromScroll(scrollY, minScrollY, maxScrollY) {
+    const t = (scrollY - minScrollY) / (maxScrollY - minScrollY);
+    if (t < 0.25) return 1;
+    if (t < 0.5) return 2;
+    if (t < 0.75) return 3;
+    return 4;
   }
 
-  // Handle scroll during development
-  window.addEventListener("scroll", () => {
-    handleScroll(window.scrollY);
-  });
+  // ✅ Dev fallback
+  if (isDebugMode) {
+    handleResize(window.innerWidth, window.innerHeight);
+    const scrollY = window.scrollY;
+    const stage = getStageFromScroll(scrollY, 0, 300);
+    animateToStage(stage);
 
-  // resize - in development
-  window.addEventListener("resize", () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    window.addEventListener("scroll", () => {
+      const stage = getStageFromScroll(window.scrollY, 0, 300);
+      animateToStage(stage);
+    });
 
-    handleResize(width, height);
-  });
+    window.addEventListener("resize", () => {
+      handleResize(window.innerWidth, window.innerHeight);
+    });
+  }
 });
