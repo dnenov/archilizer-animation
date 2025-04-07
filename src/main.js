@@ -234,6 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
     animateToStage(stage);
 
     window.addEventListener("scroll", () => {
+      console.log("scrolling..");
       const stage = getStageFromScroll(window.scrollY, 0, maxScrollY);
       animateToStage(stage);
     });
