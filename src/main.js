@@ -121,7 +121,8 @@ document.addEventListener("DOMContentLoaded", function () {
   animate(camera, scene, composer, ringGroup);
 
   function animateToStage(stage) {
-    const t = (stage - 1) * 0.25 + 0.125;
+    const totalStages = 10;
+    const t = (stage - 1) / (totalStages - 1);
 
     // Expand the ring instead of moving camera
     const radiusScale = THREE.MathUtils.lerp(settings.ringRadius, 10, t);
@@ -225,16 +226,12 @@ document.addEventListener("DOMContentLoaded", function () {
     return 4;
   }
 
-  // ✅ Dev fallback
-  if (isDebugMode) {
-    handleResize(window.innerWidth, window.innerHeight);
-    const scrollY = window.scrollY;
-    const stage = getStageFromScroll(scrollY, 0, maxScrollY);
-    animateToStage(stage);
-  }
+  handleResize(window.innerWidth, window.innerHeight);
+  const scrollY = window.scrollY;
+  const stage = getStageFromScroll(scrollY, 0, maxScrollY);
+  animateToStage(stage);
 
   window.addEventListener("scroll", () => {
-    console.log("scrolling..");
     const stage = getStageFromScroll(window.scrollY, 0, maxScrollY);
     animateToStage(stage);
   });
