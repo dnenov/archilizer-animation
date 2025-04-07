@@ -2,8 +2,8 @@ import * as THREE from "https://esm.sh/three@0.132.2";
 import FakeGlowMaterial from "./fakeGlowMaterial.js";
 
 export const settings = {
-  ringRadius: 0.8,
-  transitionDuration: 0.4, // gsap transitions - smaller is tighter
+  ringRadius: 1,
+  transitionDuration: 0.6, // gsap transitions - smaller is tighter
   numSmall: 500,
   numLargeDots: 200,
   smallDotSize: 0.2,
@@ -30,6 +30,6 @@ export const settings = {
   maxOrbitMultiplier: 10.0,
   animationProgress: 0,
   minScrollY: 0,
-  maxScrollY: 500,
+  maxScrollY: 1000,
   currentRingRadius: 2,
 };

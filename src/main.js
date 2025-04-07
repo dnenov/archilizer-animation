@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function animateToStage(stage) {
     const totalStages = 10;
     const t = (stage - 1) / (totalStages - 1);
+    console.log(t);
 
     // Expand the ring instead of moving camera
     const radiusScale = THREE.MathUtils.lerp(settings.ringRadius, 10, t);
@@ -137,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Rotate the ring
     gsap.to(ringGroup.rotation, {
-      z: THREE.MathUtils.degToRad(t * 120),
+      z: THREE.MathUtils.degToRad(t * 72),
       duration: settings.transitionDuration,
       ease: "sine.inOut",
     });
@@ -219,11 +220,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ✅ Add this helper in main.js (same as Webflow's)
   function getStageFromScroll(scrollY, minScrollY, maxScrollY) {
-    const t = (scrollY - minScrollY) / (maxScrollY - minScrollY);
-    if (t < 0.1) return 1;
-    if (t < 0.25) return 2;
-    if (t < 0.5) return 3;
-    return 4;
+    const clampedT = Math.min(
+      Math.max((scrollY - minScrollY) / (maxScrollY - minScrollY), 0),
+      0.9999
+    );
+    const totalStages = 10;
+    return Math.floor(clampedT * totalStages) + 1;
   }
 
   handleResize(window.innerWidth, window.innerHeight);
