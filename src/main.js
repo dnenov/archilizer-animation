@@ -34,13 +34,14 @@ function generateNoiseTexture(size = 4) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  const maxScrollY = 500;
   const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
   const isDebugMode =
     window.location.hostname === "localhost" ||
     window.location.protocol === "file:";
 
-  const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     powerPreference: "high-performance",
@@ -175,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
       case "init":
         handleResize(payload.width, payload.height);
         const scrollY = payload.scrollY;
-        const stage = getStageFromScroll(scrollY, 0, 300);
+        const stage = getStageFromScroll(scrollY, 0, maxScrollY);
         animateToStage(stage);
         break;
       default:
@@ -186,9 +187,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // ✅ Add this helper in main.js (same as Webflow's)
   function getStageFromScroll(scrollY, minScrollY, maxScrollY) {
     const t = (scrollY - minScrollY) / (maxScrollY - minScrollY);
-    if (t < 0.25) return 1;
-    if (t < 0.5) return 2;
-    if (t < 0.75) return 3;
+    if (t < 0.1) return 1;
+    if (t < 0.25) return 2;
+    if (t < 0.5) return 3;
     return 4;
   }
 
@@ -196,11 +197,11 @@ document.addEventListener("DOMContentLoaded", function () {
   if (isDebugMode) {
     handleResize(window.innerWidth, window.innerHeight);
     const scrollY = window.scrollY;
-    const stage = getStageFromScroll(scrollY, 0, 300);
+    const stage = getStageFromScroll(scrollY, 0, maxScrollY);
     animateToStage(stage);
 
     window.addEventListener("scroll", () => {
-      const stage = getStageFromScroll(window.scrollY, 0, 300);
+      const stage = getStageFromScroll(window.scrollY, 0, maxScrollY);
       animateToStage(stage);
     });
 
