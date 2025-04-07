@@ -110,10 +110,11 @@ document.addEventListener("DOMContentLoaded", function () {
     settings.largeDotSize,
     scene
   );
+
   dots.push(...dotsLarge, ...dotsSmall);
 
   // Start the animation loop
-  animate(camera, composer);
+  animate(camera, scene, composer);
 
   function animateToStage(stage) {
     const t = (stage - 1) * 0.25 + 0.125;

@@ -21,6 +21,7 @@ export const settings = {
   maxRotation: 0.5,
   dotGeometry: new THREE.PlaneGeometry(0.1, 0.1),
   dotMaterial: new FakeGlowMaterial({}),
+  dotSpawnMaterial: new FakeGlowMaterial({ opacity: 0 }),
   reflectiveMaterial: null,
   minSpeedFactor: 0.3,
   maxSpeedFactor: 3.0,

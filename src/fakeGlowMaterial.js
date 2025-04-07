@@ -15,6 +15,7 @@ const fragmentShader = `
   uniform float coreIntensity;
   uniform float glowIntensity;
   uniform float time;
+  uniform float opacity;
   varying vec2 vUv;
 
   void main() {
@@ -31,6 +32,8 @@ const fragmentShader = `
       (1.0 - core) * coreIntensity +
       (1.0 - glow) * glowIntensity
     );
+
+    finalAlpha *= opacity; 
 
     // Hard discard edge to avoid visible square
     if (dist > glowRadius || finalAlpha < 0.01) discard;
@@ -49,6 +52,7 @@ export default class FakeGlowMaterial extends THREE.ShaderMaterial {
         coreIntensity: { value: 0.9 },
         glowIntensity: { value: 0.2 },
         time: { value: 0 },
+        opacity: { value: 1 },
       },
       vertexShader,
       fragmentShader,

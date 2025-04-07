@@ -1,5 +1,6 @@
 import * as THREE from "https://esm.sh/three@0.132.2";
 import gsap from "https://esm.sh/gsap@3.11.4";
+import { updateDynamicDots, dynamicDots } from "./dynamicCluster.js";
 
 export const dots = [];
 const clock = new THREE.Clock();
@@ -21,12 +22,14 @@ function updateMaterials(camera) {
   });
 }
 
-export function animate(camera, composer) {
+export function animate(camera, scene, composer) {
   function loop() {
     requestAnimationFrame(loop);
     updateMaterials(camera);
 
     const deltaTime = clock.getDelta();
+
+    updateDynamicDots(scene, deltaTime);
 
     dots.forEach((dotData) => {
       // Smooth speed transition
