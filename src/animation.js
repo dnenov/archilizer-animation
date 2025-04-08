@@ -31,7 +31,7 @@ export function animate(camera, scene, composer, ringGroup) {
     const deltaTime = clock.getDelta();
 
     // The meandering dots
-    updateDynamicDots(ringGroup, deltaTime);
+    updateDynamicDots(camera, ringGroup, deltaTime);
 
     dots.forEach((dotData) => {
       // Smooth speed transition

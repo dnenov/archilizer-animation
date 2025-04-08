@@ -5,9 +5,9 @@ export const settings = {
   ringRadius: 1,
   transitionDuration: 0.6, // gsap transitions - smaller is tighter
   numSmall: 500,
-  numLargeDots: 200,
-  smallDotSize: 0.2,
-  largeDotSize: 0.6,
+  numLargeDots: 400,
+  smallDotSize: 0.4,
+  largeDotSize: 0.8,
   sOrbitRadius: 0.002,
   lOrbitRadius: 0.0005,
   sOrbitVariance: 0.25,

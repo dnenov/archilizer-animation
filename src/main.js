@@ -3,10 +3,10 @@ import * as THREE from "https://esm.sh/three@0.132.2";
 
 // Postprocessing (rewritten automatically)
 import { EffectComposer } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js";
-import { SSAOPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/SSAOPass.js";
-import { SMAAPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/SMAAPass.js";
 import { RenderPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/RenderPass.js";
 import { PMREMGenerator } from "https://esm.sh/three@0.132.2/src/extras/PMREMGenerator.js";
+import { AfterimagePass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/AfterimagePass.js";
+import { ShaderPass } from "https://esm.sh/three@0.132.2/examples/jsm/postprocessing/ShaderPass.js";
 
 // GSAP
 import gsap from "https://esm.sh/gsap@3.11.4";
@@ -16,22 +16,32 @@ import { createDotCluster } from "./cluster.js";
 import { animate, smoothMoveCamera, dots } from "./animation.js";
 import { settings } from "./settings.js";
 
-function generateNoiseTexture(size = 4) {
-  const width = size;
-  const height = size;
-  const data = new Uint8Array(width * height * 3); // RGB
-
-  for (let i = 0; i < width * height * 3; i++) {
-    data[i] = Math.random() * 255;
-  }
-
-  const texture = new THREE.DataTexture(data, width, height, THREE.RGBFormat);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.needsUpdate = true;
-
-  return texture;
-}
+const ChromaticAberrationShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    amount: { value: 0.0002 }, // increase for stronger split
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float amount;
+    varying vec2 vUv;
+    
+    void main() {
+      vec2 offset = amount * vec2(1.0, 1.0);
+      float r = texture2D(tDiffuse, vUv + offset).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv - offset).b;
+      gl_FragColor = vec4(r, g, b, 1.0);
+    }
+  `,
+};
 
 document.addEventListener("DOMContentLoaded", function () {
   const maxScrollY = 500;
@@ -58,29 +68,21 @@ document.addEventListener("DOMContentLoaded", function () {
   scene.background = new THREE.Color(0xffffff);
   // scene.fog = new THREE.Fog(0xffffff, 9, 11);
 
-  camera.position.set(-4, 0, 8); // Looking directly at the ring
+  camera.position.set(-4, 0, 6); // Looking directly at the ring
+
+  const afterimagePass = new AfterimagePass();
+  afterimagePass.uniforms["damp"].value = 0.2; // 0.8 = heavy ghosting, 0.95 = subtle
 
   const renderPass = new RenderPass(scene, camera);
-  const ssaoPass = new SSAOPass(scene, camera, 1, 1);
-  const smaaPass = new SMAAPass(1, 1);
-
+  const chromaPass = new ShaderPass(ChromaticAberrationShader);
   container.appendChild(renderer.domElement);
 
-  ssaoPass.kernelRadius = 0.65;
-  ssaoPass.minDistance = 0.001;
-  ssaoPass.maxDistance = 0.1;
-  ssaoPass.sampleCount = 64;
-  ssaoPass.output = SSAOPass.OUTPUT.Default;
-
-  ssaoPass.noiseTexture = generateNoiseTexture();
-  ssaoPass.noiseTexture.wrapS = THREE.RepeatWrapping;
-  ssaoPass.noiseTexture.wrapT = THREE.RepeatWrapping;
-
   composer.addPass(renderPass);
-  composer.addPass(ssaoPass);
-  composer.addPass(smaaPass);
+  composer.addPass(afterimagePass);
+  composer.addPass(chromaPass);
+  chromaPass.renderToScreen = true;
 
-  smaaPass.renderToScreen = true;
+  afterimagePass.renderToScreen = true;
 
   // Lighting
   const light = new THREE.AmbientLight(0xffffff, 1);
@@ -190,8 +192,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     renderer.setSize(width, height);
     composer.setSize(width, height);
-    ssaoPass.setSize(width, height);
-    smaaPass.setSize(width, height);
   }
 
   // ✅ Final message handler

@@ -3,8 +3,12 @@ import { settings } from "./settings.js";
 
 export const dynamicDots = [];
 
-const MAX_DYNAMIC_DOTS = 500;
-const SPAWN_INTERVAL = 0.1;
+const MAX_DYNAMIC_DOTS = 1500;
+const SPAWN_INTERVAL = 0.01;
+const LIFE_SPAN = 30;
+const SIZE = 0.5;
+const ORBIT_SIZE = 0.5;
+const ORBIT_SPEED = 1.5;
 let spawnTimer = 0;
 let nextSpawnInterval = SPAWN_INTERVAL;
 
@@ -18,7 +22,7 @@ export function spawnDynamicDot(ringGroup) {
     settings.dotGeometry,
     settings.dotSpawnMaterial.clone()
   );
-  const scale = Math.random() * 0.8 + 0.2;
+  const scale = Math.random() * SIZE + 0.5;
   mesh.scale.set(scale, scale, scale);
   mesh.position.set(x, y, z);
   ringGroup.add(mesh);
@@ -28,8 +32,8 @@ export function spawnDynamicDot(ringGroup) {
     .crossVectors(radialDir, new THREE.Vector3(0, 0, 1))
     .normalize();
 
-  const orbitSpeed = 0.5 + Math.random();
-  const orbitSize = 0.1 + Math.random() * 0.2;
+  const orbitSpeed = 0.2 + Math.random() * ORBIT_SPEED;
+  const orbitSize = 0.1 + Math.random() * ORBIT_SIZE;
   const globalSpeed =
     (Math.random() < 0.5 ? -1 : 1) * (0.02 + Math.random() * 0.08);
 
@@ -44,7 +48,7 @@ export function spawnDynamicDot(ringGroup) {
     orbitSize,
     baseOrbitSize: orbitSize,
     targetOrbitSize: orbitSize,
-    life: 15 + Math.random() * 5, // sets the lifespan
+    life: LIFE_SPAN + Math.random() * 5, // sets the lifespan
     globalAngle: Math.random() * Math.PI * 2,
     globalSpeed,
     maxLife: 0,
@@ -54,7 +58,7 @@ export function spawnDynamicDot(ringGroup) {
   dynamicDots.push(dot);
 }
 
-export function updateDynamicDots(ringGroup, deltaTime) {
+export function updateDynamicDots(camera, ringGroup, deltaTime) {
   // Spawn new if under max
   spawnTimer += deltaTime;
   if (spawnTimer > nextSpawnInterval && dynamicDots.length < MAX_DYNAMIC_DOTS) {
