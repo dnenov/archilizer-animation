@@ -15,11 +15,12 @@ import gsap from "https://esm.sh/gsap@3.11.4";
 import { createDotCluster } from "./cluster.js";
 import { animate, smoothMoveCamera, dots } from "./animation.js";
 import { settings } from "./settings.js";
+import { setDynamicDotOrbitScale } from "./dynamicCluster.js";
 
 const ChromaticAberrationShader = {
   uniforms: {
     tDiffuse: { value: null },
-    amount: { value: 0.0002 }, // increase for stronger split
+    amount: { value: 0.0003 }, // increase for stronger split
   },
   vertexShader: `
     varying vec2 vUv;
@@ -66,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Setup Scene, Camera, Renderer
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
-  // scene.fog = new THREE.Fog(0xffffff, 9, 11);
+  scene.fog = new THREE.Fog(0xffffff, 5.5, 6.5);
 
   camera.position.set(-4, 0, 6); // Looking directly at the ring
 
@@ -158,6 +159,8 @@ document.addEventListener("DOMContentLoaded", function () {
       settings.maxOrbitMultiplier,
       t
     );
+
+    setDynamicDotOrbitScale(orbitScale);
 
     const speedMultiplier = THREE.MathUtils.lerp(
       settings.minSpeedFactor,

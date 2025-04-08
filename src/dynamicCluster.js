@@ -7,12 +7,19 @@ const MAX_DYNAMIC_DOTS = 1500;
 const SPAWN_INTERVAL = 0.01;
 const LIFE_SPAN = 30;
 const SIZE = 0.5;
-const ORBIT_SIZE = 0.5;
+const ORBIT_SIZE = 0.1;
 const ORBIT_SPEED = 1.5;
 let spawnTimer = 0;
 let nextSpawnInterval = SPAWN_INTERVAL;
 
 export function spawnDynamicDot(ringGroup) {
+  const visibleChance = THREE.MathUtils.clamp(
+    settings.animationProgress,
+    0.3,
+    1.0
+  );
+  if (Math.random() > visibleChance) return;
+
   const theta = Math.random() * Math.PI * 2;
   const x = settings.ringRadius * Math.cos(theta);
   const y = settings.ringRadius * Math.sin(theta);
@@ -94,6 +101,9 @@ export function updateDynamicDots(camera, ringGroup, deltaTime) {
     dot.accumulatedPhase += dot.currentSpeed * deltaTime;
     dot.globalAngle += dot.globalSpeed * deltaTime;
 
+    dot.currentSpeed += (dot.targetSpeed - dot.currentSpeed) * 0.1;
+    dot.orbitSize += (dot.targetOrbitSize - dot.orbitSize) * 0.1;
+
     // Update base position (rotating slowly around center)
     const radius = settings.currentRingRadius;
     const bx = radius * Math.cos(dot.globalAngle);
@@ -113,5 +123,11 @@ export function updateDynamicDots(camera, ringGroup, deltaTime) {
       dot.accumulatedPhase + dot.orbitAngleOffset
     );
     dot.mesh.position.add(dot.basePosition);
+  }
+}
+
+export function setDynamicDotOrbitScale(scale) {
+  for (const dot of dynamicDots) {
+    dot.targetOrbitSize = dot.baseOrbitSize * scale;
   }
 }
