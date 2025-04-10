@@ -32,6 +32,6 @@ export const settings = {
   minScrollY: 0,
   maxScrollY: 1000,
   currentRingRadius: 2,
-  totalStages: 100,
+  totalStages: 4,
   maxScrollY: 500,
 };
