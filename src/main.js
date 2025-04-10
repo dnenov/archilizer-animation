@@ -15,7 +15,7 @@ import gsap from "https://esm.sh/gsap@3.11.4";
 import { createDotCluster } from "./cluster.js";
 import { animate, smoothMoveCamera, dots } from "./animation.js";
 import { settings } from "./settings.js";
-import { setDynamicDotOrbitScale } from "./dynamicCluster.js";
+import { DynamicCluster } from "./dynamicCluster.js";
 
 const ChromaticAberrationShader = {
   uniforms: {
@@ -120,8 +120,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   dots.push(...dotsLarge, ...dotsSmall);
 
+  /**
+   * Dynamic Cluster
+   */
+  const dynamicCluster = new DynamicCluster(ringGroup);
+
   // Start the animation loop
-  animate(camera, scene, composer, ringGroup);
+  animate(camera, scene, composer, ringGroup, dynamicCluster);
 
   function animateToStage(stage) {
     const totalStages = 10;
@@ -160,8 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
       t
     );
 
-    setDynamicDotOrbitScale(orbitScale);
-
     const speedMultiplier = THREE.MathUtils.lerp(
       settings.minSpeedFactor,
       settings.maxSpeedFactor,
@@ -175,6 +178,19 @@ document.addEventListener("DOMContentLoaded", function () {
       const theta = dotData.baseTheta; // already stored during creation
       const r = settings.currentRingRadius;
       dotData.basePosition.set(r * Math.cos(theta), r * Math.sin(theta), 0);
+
+      if (!(stage in dotData.visibilityByStage)) {
+        if (stage === 0) {
+          dotData.visibilityByStage[stage] = Math.random() < 0.1;
+        } else if (stage <= 4) {
+          dotData.visibilityByStage[stage] = Math.random() < 0.4;
+        } else {
+          dotData.visibilityByStage[stage] = true;
+        }
+      }
+
+      // ✅ Now we use the locked-in value
+      dotData.isVisible = dotData.visibilityByStage[stage];
     });
 
     // 🎯 Smoothly transition orbit size
@@ -187,6 +203,11 @@ document.addEventListener("DOMContentLoaded", function () {
         overwrite: "auto",
       });
     });
+
+    // Dynamic Cluster
+    dynamicCluster.setOrbitScale(orbitScale);
+    dynamicCluster.setVisibilityThreshold(t); // or clamp t
+    dynamicCluster.setSpeedMultiplier(t);
   }
 
   function handleResize(width, height) {

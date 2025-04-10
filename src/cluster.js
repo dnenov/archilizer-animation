@@ -53,6 +53,8 @@ export function createDotCluster(
       baseOrbitSize: randomizedSize,
       targetOrbitSize: randomizedSize,
       driftFactor: 0.2,
+      isVisible: false,
+      visibilityByStage: {},
     });
   }
 

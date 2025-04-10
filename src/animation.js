@@ -1,6 +1,5 @@
 import * as THREE from "https://esm.sh/three@0.132.2";
 import gsap from "https://esm.sh/gsap@3.11.4";
-import { updateDynamicDots, dynamicDots } from "./dynamicCluster.js";
 import { settings } from "./settings.js";
 
 export const dots = [];
@@ -8,10 +7,36 @@ const clock = new THREE.Clock();
 
 function updateMaterials(camera) {
   const t = performance.now() / 1000;
+
   dots.forEach((dotData) => {
     const dot = dotData.mesh;
     const children = dot.isGroup ? dot.children : [dot];
 
+    let maxOpacity = 0;
+
+    const mainChild = children[0]; // ✅ pick one child to animate
+    const uniforms = mainChild.material.uniforms;
+
+    if (uniforms?.opacity) {
+      mainChild.material.transparent = true;
+
+      const target = dotData.isVisible ? 1 : 0;
+
+      // ✅ Only animate if target changes
+      if (dotData._lastTarget !== target) {
+        dotData._lastTarget = target;
+
+        gsap.to(uniforms.opacity, {
+          value: target,
+          duration: 0.5,
+          ease: "sine.inOut",
+        });
+      }
+
+      maxOpacity = Math.max(maxOpacity, uniforms.opacity.value);
+    }
+
+    // ✅ Update all children — no animation here
     children.forEach((child) => {
       if (child.userData.isGlow) {
         child.lookAt(camera.position);
@@ -20,10 +45,12 @@ function updateMaterials(camera) {
         }
       }
     });
+
+    dot.visible = maxOpacity > 0.01;
   });
 }
 
-export function animate(camera, scene, composer, ringGroup) {
+export function animate(camera, scene, composer, ringGroup, dynamicCluster) {
   function loop() {
     requestAnimationFrame(loop);
     updateMaterials(camera);
@@ -31,7 +58,7 @@ export function animate(camera, scene, composer, ringGroup) {
     const deltaTime = clock.getDelta();
 
     // The meandering dots
-    updateDynamicDots(camera, ringGroup, deltaTime);
+    dynamicCluster.update(camera, deltaTime);
 
     dots.forEach((dotData) => {
       // Smooth speed transition
