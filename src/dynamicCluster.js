@@ -8,8 +8,9 @@ import { DYNAMIC_CLUSTER_DEFAULTS as cfg } from "./dynamicClusterConfig.js";
  * fade in/out over time, and are animated based on stage transitions.
  */
 export class DynamicCluster {
-  constructor(ringGroup) {
+  constructor(ringGroup, getMouseWorldFn) {
     this.ringGroup = ringGroup;
+    this.getMouseWorld = getMouseWorldFn; // ✅ Store the mouse function
     this.dots = [];
     this.spawnTimer = 0;
     this.nextSpawnInterval = cfg.SPAWN_INTERVAL_BASE;
@@ -77,6 +78,8 @@ export class DynamicCluster {
       life: cfg.LIFE_SPAN + Math.random() * 5,
       maxLife: 0,
       globalAngle: Math.random() * Math.PI * 2,
+
+      repulsionOffset: new THREE.Vector3(),
     };
 
     dot.maxLife = dot.life;
@@ -90,6 +93,14 @@ export class DynamicCluster {
    * @param {number} deltaTime - Time since last frame
    */
   update(camera, deltaTime) {
+    const mousePos = this.getMouseWorld();
+    const repulsionRadius = 0.5;
+    const baseRepulsionStrength = 0.02;
+    const t = settings.animationProgress;
+    const dynamicRepulsionRadius = repulsionRadius * (1 + t * 2);
+    const dynamicStrength = baseRepulsionStrength * (1 + t * 100);
+    const toDot = new THREE.Vector3();
+
     // Attempt to spawn a new dot if allowed
     this.spawnTimer += deltaTime;
     if (
@@ -147,8 +158,29 @@ export class DynamicCluster {
         .multiplyScalar(dot.orbitSize)
         .negate();
 
+      // ✅ Repulsion logic
+      const worldPos = dot.mesh.getWorldPosition(new THREE.Vector3());
+      toDot.subVectors(worldPos, mousePos);
+      const dist = toDot.length();
+
+      if (dist < dynamicRepulsionRadius) {
+        const falloff =
+          (dynamicRepulsionRadius - dist) / dynamicRepulsionRadius;
+        const push = toDot
+          .normalize()
+          .multiplyScalar(Math.pow(falloff, 3) * dynamicStrength * 10);
+        dot.repulsionOffset.add(push);
+      }
+
+      // 🌀 Let them drift back slowly — same as static
+      dot.repulsionOffset.multiplyScalar(0.985);
+      dot.repulsionOffset.lerp(new THREE.Vector3(), 0.012);
+
       // Final position = rotated offset from base
-      dot.mesh.position.copy(dot.basePosition).add(orbitOffset);
+      dot.mesh.position
+        .copy(dot.basePosition)
+        .add(dot.repulsionOffset)
+        .add(orbitOffset);
       dot.mesh.position.sub(dot.basePosition);
       dot.mesh.position.applyAxisAngle(
         dot.orbitNormal,

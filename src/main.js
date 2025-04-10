@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
   /**
    * Dynamic Cluster
    */
-  const dynamicCluster = new DynamicCluster(ringGroup);
+  const dynamicCluster = new DynamicCluster(ringGroup, () => mouseWorld);
 
   // Start the animation loop
   animate(camera, scene, composer, ringGroup, dynamicCluster, () => mouseWorld);
