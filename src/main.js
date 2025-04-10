@@ -224,8 +224,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     switch (type) {
       case "setStage":
-        console.log(`setting the stage to ${payload.stage}`);
         animateToStage(payload.stage);
+        break;
+      case "scrollProgress":
+        settings.animationProgress = payload.t;
         break;
       case "resize":
         handleResize(payload.width, payload.height);
