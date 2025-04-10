@@ -142,7 +142,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     settings.animationProgress = t;
-    // smoothMoveCamera(camera, t); // now only rotates
 
     // Rotate the ring
     gsap.to(ringGroup.rotation, {
@@ -154,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Pan the ring
     gsap.to(ringGroup.position, {
       x: THREE.MathUtils.lerp(0, -4.5, t),
-      y: THREE.MathUtils.lerp(0, 4.5, t), // move slightly up at higher stages
+      y: THREE.MathUtils.lerp(0, 4.5, t),
       duration: settings.transitionDuration,
       ease: "sine.inOut",
     });
@@ -178,19 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const theta = dotData.baseTheta; // already stored during creation
       const r = settings.currentRingRadius;
       dotData.basePosition.set(r * Math.cos(theta), r * Math.sin(theta), 0);
-
-      if (!(stage in dotData.visibilityByStage)) {
-        if (stage === 0) {
-          dotData.visibilityByStage[stage] = Math.random() < 0.1;
-        } else if (stage <= 4) {
-          dotData.visibilityByStage[stage] = Math.random() < 0.4;
-        } else {
-          dotData.visibilityByStage[stage] = true;
-        }
-      }
-
-      // ✅ Now we use the locked-in value
-      dotData.isVisible = dotData.visibilityByStage[stage];
     });
 
     // 🎯 Smoothly transition orbit size
@@ -206,7 +192,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Dynamic Cluster
     dynamicCluster.setOrbitScale(orbitScale);
-    dynamicCluster.setVisibilityThreshold(t);
     dynamicCluster.setSpeedMultiplier(t);
   }
 

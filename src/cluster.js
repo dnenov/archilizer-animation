@@ -25,7 +25,6 @@ export function createDotCluster(
     const scaleFactor = Math.random() * dotSize + 0.4;
     dot.scale.set(scaleFactor, scaleFactor, scaleFactor);
     dot.position.set(x, y, z);
-    // scene.add(dot);
     ringGroup.add(dot);
 
     const radialDirection = new THREE.Vector3(x, y, z).normalize();
@@ -53,8 +52,6 @@ export function createDotCluster(
       baseOrbitSize: randomizedSize,
       targetOrbitSize: randomizedSize,
       driftFactor: 0.2,
-      isVisible: false,
-      visibilityByStage: {},
     });
   }
 

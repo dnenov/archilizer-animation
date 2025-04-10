@@ -12,30 +12,6 @@ function updateMaterials(camera) {
     const dot = dotData.mesh;
     const children = dot.isGroup ? dot.children : [dot];
 
-    let maxOpacity = 0;
-
-    const mainChild = children[0]; // ✅ pick one child to animate
-    const uniforms = mainChild.material.uniforms;
-
-    if (uniforms?.opacity) {
-      mainChild.material.transparent = true;
-
-      const target = dotData.isVisible ? 1 : 0;
-
-      // ✅ Only animate if target changes
-      if (dotData._lastTarget !== target) {
-        dotData._lastTarget = target;
-
-        gsap.to(uniforms.opacity, {
-          value: target,
-          duration: 0.5,
-          ease: "sine.inOut",
-        });
-      }
-
-      maxOpacity = Math.max(maxOpacity, uniforms.opacity.value);
-    }
-
     // ✅ Update all children — no animation here
     children.forEach((child) => {
       if (child.userData.isGlow) {
@@ -45,8 +21,6 @@ function updateMaterials(camera) {
         }
       }
     });
-
-    dot.visible = maxOpacity > 0.01;
   });
 }
 

@@ -16,7 +16,6 @@ export class DynamicCluster {
 
     this.state = {
       orbitSizeMultiplier: 1,
-      visibilityThreshold: 1, // Controls random chance to spawn dots
     };
   }
 
@@ -25,8 +24,6 @@ export class DynamicCluster {
    * Dots are positioned on a circular ring and drift while orbiting locally.
    */
   spawnDot() {
-    if (Math.random() > this.state.visibilityThreshold) return;
-
     // Place the dot on the ring
     const theta = Math.random() * Math.PI * 2;
     const x = settings.ringRadius * Math.cos(theta);
@@ -80,8 +77,6 @@ export class DynamicCluster {
       life: cfg.LIFE_SPAN + Math.random() * 5,
       maxLife: 0,
       globalAngle: Math.random() * Math.PI * 2,
-
-      isVisible: false,
     };
 
     dot.maxLife = dot.life;
@@ -173,15 +168,6 @@ export class DynamicCluster {
     for (const dot of this.dots) {
       dot.targetOrbitSize = dot.baseOrbitSize * multiplier;
     }
-  }
-
-  /**
-   * Controls how likely a new dot is to spawn per frame.
-   * Should be between 0 (no spawn) and 1 (always spawn if under limit).
-   * @param {number} value - Probability threshold
-   */
-  setVisibilityThreshold(value) {
-    this.state.visibilityThreshold = value;
   }
 
   /**
