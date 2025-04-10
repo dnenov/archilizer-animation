@@ -204,6 +204,19 @@ document.addEventListener("DOMContentLoaded", function () {
     composer.setSize(width, height);
   }
 
+  function updateMouseWorldFromScreenCoords(x, y) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      (x / rect.width) * 2 - 1,
+      -(y / rect.height) * 2 + 1
+    );
+
+    const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5).unproject(camera);
+    const dir = vector.sub(camera.position).normalize(); // ✅ add this line
+    const distance = (0 - camera.position.z) / dir.z;
+    mouseWorld = camera.position.clone().add(dir.multiplyScalar(distance));
+  }
+
   // ✅ Final message handler
   window.addEventListener("message", (event) => {
     const { type, payload } = event.data;
@@ -222,6 +235,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const scrollY = payload.scrollY;
         const stage = getStageFromScroll(scrollY, 0, maxScrollY);
         animateToStage(stage);
+        break;
+      case "mouseMove":
+        updateMouseWorldFromScreenCoords(payload.x, payload.y);
         break;
       default:
         console.warn("Unknown message type:", type);
@@ -253,15 +269,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   window.addEventListener("mousemove", (event) => {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const mouse = new THREE.Vector2(
-      ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      -((event.clientY - rect.top) / rect.height) * 2 + 1
-    );
-
-    const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5).unproject(camera);
-    const dir = vector.sub(camera.position).normalize();
-    const distance = (0 - camera.position.z) / dir.z;
-    mouseWorld = camera.position.clone().add(dir.multiplyScalar(distance));
+    updateMouseWorldFromScreenCoords(event.clientX, event.clientY);
   });
 });
