@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Dynamic Cluster
     dynamicCluster.setOrbitScale(orbitScale);
-    dynamicCluster.setVisibilityThreshold(t); // or clamp t
+    dynamicCluster.setVisibilityThreshold(t);
     dynamicCluster.setSpeedMultiplier(t);
   }
 

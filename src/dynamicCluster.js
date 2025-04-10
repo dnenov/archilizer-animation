@@ -2,6 +2,11 @@ import * as THREE from "https://esm.sh/three@0.132.2";
 import { settings } from "./settings.js";
 import { DYNAMIC_CLUSTER_DEFAULTS as cfg } from "./dynamicClusterConfig.js";
 
+/**
+ * Handles the spawning, updating, and scaling of dynamic orbiting dots.
+ * Dots appear around a ring, move with local and global rotation,
+ * fade in/out over time, and are animated based on stage transitions.
+ */
 export class DynamicCluster {
   constructor(ringGroup) {
     this.ringGroup = ringGroup;
@@ -11,18 +16,24 @@ export class DynamicCluster {
 
     this.state = {
       orbitSizeMultiplier: 1,
-      visibilityThreshold: 1,
+      visibilityThreshold: 1, // Controls random chance to spawn dots
     };
   }
 
+  /**
+   * Spawns a new dynamic dot with randomized orbit and animation parameters.
+   * Dots are positioned on a circular ring and drift while orbiting locally.
+   */
   spawnDot() {
     if (Math.random() > this.state.visibilityThreshold) return;
 
+    // Place the dot on the ring
     const theta = Math.random() * Math.PI * 2;
     const x = settings.ringRadius * Math.cos(theta);
     const y = settings.ringRadius * Math.sin(theta);
     const z = 0;
 
+    // Create mesh with cloned material
     const mesh = new THREE.Mesh(
       settings.dotGeometry,
       settings.dotSpawnMaterial.clone()
@@ -33,39 +44,43 @@ export class DynamicCluster {
     mesh.position.set(x, y, z);
     this.ringGroup.add(mesh);
 
+    // Determine orbit axis (local tangent to the ring)
     const radialDir = new THREE.Vector3(x, y, z).normalize();
     const orbitNormal = new THREE.Vector3()
       .crossVectors(radialDir, new THREE.Vector3(0, 0, 1))
       .normalize();
 
+    // Speed and orbit behavior
     const baseOrbitSpeed =
       cfg.ORBIT_SPEED_BASE +
       Math.random() * (cfg.ORBIT_SPEED_MAX - cfg.ORBIT_SPEED_BASE);
     const baseGlobalSpeed =
       (Math.random() < 0.5 ? -1 : 1) * (0.02 + Math.random() * 0.08);
-
     const orbitSize = 0.1 + Math.random() * cfg.ORBIT_SIZE;
-    const globalSpeed =
-      (Math.random() < 0.5 ? -1 : 1) * (0.02 + Math.random() * 0.08);
 
+    // Initialize dot state
     const dot = {
       mesh,
       basePosition: new THREE.Vector3(x, y, z),
       orbitNormal,
       orbitAngleOffset: Math.random() * Math.PI * 2,
       accumulatedPhase: 0,
+
       baseOrbitSpeed,
       currentSpeed: baseOrbitSpeed,
       targetSpeed: baseOrbitSpeed,
+
       baseGlobalSpeed,
       globalSpeed: baseGlobalSpeed,
+
       orbitSize,
       baseOrbitSize: orbitSize,
       targetOrbitSize: orbitSize,
+
       life: cfg.LIFE_SPAN + Math.random() * 5,
       maxLife: 0,
       globalAngle: Math.random() * Math.PI * 2,
-      globalSpeed,
+
       isVisible: false,
     };
 
@@ -73,8 +88,14 @@ export class DynamicCluster {
     this.dots.push(dot);
   }
 
+  /**
+   * Updates all active dynamic dots. Handles movement, fading, and removal.
+   * Should be called every animation frame.
+   * @param {THREE.Camera} camera - Used for billboarding (if needed)
+   * @param {number} deltaTime - Time since last frame
+   */
   update(camera, deltaTime) {
-    // Try to spawn new dot
+    // Attempt to spawn a new dot if allowed
     this.spawnTimer += deltaTime;
     if (
       this.spawnTimer > this.nextSpawnInterval &&
@@ -82,14 +103,15 @@ export class DynamicCluster {
     ) {
       this.spawnDot();
       this.spawnTimer = 0;
-      this.nextSpawnInterval = 0.01;
+      this.nextSpawnInterval = 0.01; // Can be randomized if desired
     }
 
+    // Loop over dots in reverse for safe removal
     for (let i = this.dots.length - 1; i >= 0; i--) {
       const dot = this.dots[i];
 
+      // Lifespan and fade
       dot.life -= deltaTime;
-
       const fadeIn = Math.min(1, (dot.maxLife - dot.life) / cfg.FADE_DURATION);
       const fadeOut = Math.min(1, dot.life / cfg.FADE_DURATION);
       const alpha = THREE.MathUtils.clamp(Math.min(fadeIn, fadeOut), 0, 1);
@@ -100,32 +122,37 @@ export class DynamicCluster {
         dot.mesh.material.opacity = alpha;
       }
 
+      // Remove dead dot
       if (dot.life <= -cfg.FADE_BUFFER) {
         this.ringGroup.remove(dot.mesh);
         this.dots.splice(i, 1);
         continue;
       }
 
+      // Advance phase and global rotation
       dot.accumulatedPhase += dot.currentSpeed * deltaTime;
       dot.globalAngle += (dot.globalSpeedScaled ?? dot.globalSpeed) * deltaTime;
 
+      // Animate speed and orbit size
       dot.currentSpeed += (dot.targetSpeed - dot.currentSpeed) * 0.1;
       dot.orbitSize += (dot.targetOrbitSize - dot.orbitSize) * 0.1;
 
+      // Update base position along the ring
       const radius = settings.currentRingRadius;
       const bx = radius * Math.cos(dot.globalAngle);
       const by = radius * Math.sin(dot.globalAngle);
       dot.basePosition.set(bx, by, 0);
 
+      // Offset for local orbit
       const tangent = new THREE.Vector3()
         .crossVectors(dot.orbitNormal, new THREE.Vector3(0, 0, 1))
         .normalize();
-
       const orbitOffset = tangent
         .clone()
         .multiplyScalar(dot.orbitSize)
         .negate();
 
+      // Final position = rotated offset from base
       dot.mesh.position.copy(dot.basePosition).add(orbitOffset);
       dot.mesh.position.sub(dot.basePosition);
       dot.mesh.position.applyAxisAngle(
@@ -136,6 +163,11 @@ export class DynamicCluster {
     }
   }
 
+  /**
+   * Adjusts orbit radius scale for all dots (with interpolation).
+   * Typically used during stage transitions.
+   * @param {number} multiplier - Value to multiply each dot's base orbit size
+   */
   setOrbitScale(multiplier) {
     this.state.orbitSizeMultiplier = multiplier;
     for (const dot of this.dots) {
@@ -143,10 +175,20 @@ export class DynamicCluster {
     }
   }
 
+  /**
+   * Controls how likely a new dot is to spawn per frame.
+   * Should be between 0 (no spawn) and 1 (always spawn if under limit).
+   * @param {number} value - Probability threshold
+   */
   setVisibilityThreshold(value) {
     this.state.visibilityThreshold = value;
   }
 
+  /**
+   * Scales both local orbital speed and global drift using a single factor.
+   * Use to sync motion speed to stage progress (t ∈ [0, 1]).
+   * @param {number} t - Normalized stage progress
+   */
   setSpeedMultiplier(t) {
     const speedMultiplier = THREE.MathUtils.lerp(
       cfg.ORBIT_SPEED_BASE,
