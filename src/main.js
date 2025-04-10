@@ -44,6 +44,7 @@ const ChromaticAberrationShader = {
   `,
 };
 
+let mouseWorld = new THREE.Vector3();
 document.addEventListener("DOMContentLoaded", function () {
   const maxScrollY = 500;
   const container = document.getElementById("three-container");
@@ -126,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const dynamicCluster = new DynamicCluster(ringGroup);
 
   // Start the animation loop
-  animate(camera, scene, composer, ringGroup, dynamicCluster);
+  animate(camera, scene, composer, ringGroup, dynamicCluster, () => mouseWorld);
 
   function animateToStage(stage) {
     const totalStages = 10;
@@ -249,5 +250,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.addEventListener("resize", () => {
     handleResize(window.innerWidth, window.innerHeight);
+  });
+
+  window.addEventListener("mousemove", (event) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+
+    const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5).unproject(camera);
+    const dir = vector.sub(camera.position).normalize();
+    const distance = (0 - camera.position.z) / dir.z;
+    mouseWorld = camera.position.clone().add(dir.multiplyScalar(distance));
   });
 });

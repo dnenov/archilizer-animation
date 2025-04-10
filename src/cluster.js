@@ -52,6 +52,9 @@ export function createDotCluster(
       baseOrbitSize: randomizedSize,
       targetOrbitSize: randomizedSize,
       driftFactor: 0.2,
+      repulsionOffset: new THREE.Vector3(),
+      isBeingRepelled: false,
+      repulsionOffset: new THREE.Vector3(),
     });
   }
 
