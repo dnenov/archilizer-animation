@@ -46,7 +46,7 @@ const ChromaticAberrationShader = {
 
 let mouseWorld = new THREE.Vector3();
 document.addEventListener("DOMContentLoaded", function () {
-  const maxScrollY = 500;
+  const maxScrollY = settings.maxScrollY;
   const container = document.getElementById("three-container");
   const logger = document.getElementById("logger");
   const isDebugMode =
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
   animate(camera, scene, composer, ringGroup, dynamicCluster, () => mouseWorld);
 
   function animateToStage(stage) {
-    const totalStages = 10;
+    const totalStages = settings.totalStages;
     const t = (stage - 1) / (totalStages - 1);
     console.log(t);
 
@@ -226,16 +226,17 @@ document.addEventListener("DOMContentLoaded", function () {
       case "setStage":
         animateToStage(payload.stage);
         break;
-      case "scrollProgress":
-        settings.animationProgress = payload.t;
-        break;
       case "resize":
         handleResize(payload.width, payload.height);
         break;
       case "init":
         handleResize(payload.width, payload.height);
+
+        settings.totalStages = payload.totalStages;
+        settings.maxScrollY = payload.maxScrollY;
+
         const scrollY = payload.scrollY;
-        const stage = getStageFromScroll(scrollY, 0, maxScrollY);
+        const stage = getStageFromScroll(scrollY, 0, settings.maxScrollY);
         animateToStage(stage);
         break;
       case "mouseMove":
@@ -252,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
       Math.max((scrollY - minScrollY) / (maxScrollY - minScrollY), 0),
       0.9999
     );
-    const totalStages = 10;
+    const totalStages = settings.totalStages;
     return Math.floor(clampedT * totalStages) + 1;
   }
 
