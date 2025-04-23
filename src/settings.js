@@ -2,7 +2,7 @@ import * as THREE from "https://esm.sh/three@0.132.2";
 import FakeGlowMaterial from "./fakeGlowMaterial.js";
 
 export const settings = {
-  ringRadius: 1,
+  ringRadius: 1.33,
   transitionDuration: 0.6, // gsap transitions - smaller is tighter
   numSmall: 500,
   numLargeDots: 400,

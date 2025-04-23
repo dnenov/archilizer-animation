@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
   scene.background = new THREE.Color(0xffffff);
   scene.fog = new THREE.Fog(0xffffff, 5.5, 6.5);
 
-  camera.position.set(-4, 0, 6); // Looking directly at the ring
+  camera.position.set(-4, 0, 6.6); // Looking directly at the ring
 
   const afterimagePass = new AfterimagePass();
   afterimagePass.uniforms["damp"].value = 0.2; // 0.8 = heavy ghosting, 0.95 = subtle
