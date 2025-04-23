@@ -187,6 +187,21 @@ export class DynamicCluster {
         dot.accumulatedPhase + dot.orbitAngleOffset
       );
       dot.mesh.position.add(dot.basePosition);
+
+      const distanceFromPlane = dot.mesh.position.z;
+      const normalizedDistance = Math.min(
+        1,
+        Math.max(0, (distanceFromPlane + 0.15) / 0.15)
+      );
+
+      // Combine both effects (fade * distance)
+      const finalOpacity = alpha * normalizedDistance;
+
+      if (dot.mesh.material?.uniforms?.opacity) {
+        dot.mesh.material.uniforms.opacity.value = finalOpacity;
+      } else {
+        dot.mesh.material.opacity = finalOpacity;
+      }
     }
   }
 
