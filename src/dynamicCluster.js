@@ -89,10 +89,9 @@ export class DynamicCluster {
   /**
    * Updates all active dynamic dots. Handles movement, fading, and removal.
    * Should be called every animation frame.
-   * @param {THREE.Camera} camera - Used for billboarding (if needed)
    * @param {number} deltaTime - Time since last frame
    */
-  update(camera, deltaTime) {
+  update(deltaTime) {
     const mousePos = this.getMouseWorld();
     const repulsionRadius = 0.5;
     const baseRepulsionStrength = 0.02;

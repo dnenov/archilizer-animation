@@ -23,14 +23,7 @@ function updateMaterials(camera) {
   });
 }
 
-export function animate(
-  camera,
-  scene,
-  composer,
-  ringGroup,
-  dynamicCluster,
-  getMouseWorld
-) {
+export function animate(camera, composer, dynamicCluster, getMouseWorld) {
   function loop() {
     requestAnimationFrame(loop);
     updateMaterials(camera);
@@ -47,7 +40,7 @@ export function animate(
 
     const toDot = new THREE.Vector3();
 
-    dynamicCluster.update(camera, deltaTime);
+    dynamicCluster.update(deltaTime);
 
     dots.forEach((dotData) => {
       dotData.currentSpeed +=
@@ -105,33 +98,4 @@ export function animate(
   }
 
   loop();
-}
-
-export function smoothMoveCamera(camera, targetT) {
-  const duration = 0.8; // Shorter duration for responsiveness
-
-  // Define start/end positions (now based on targetT)
-  const startPos = new THREE.Vector3(0, 0, 15);
-  const endPos = new THREE.Vector3(0, 0, 2);
-  const startRot = 0;
-  const endRot = -1.5;
-
-  // Calculate target position/rotation for this frame
-  const targetPos = new THREE.Vector3().lerpVectors(startPos, endPos, targetT);
-  const targetRot = THREE.MathUtils.lerp(startRot, endRot, targetT);
-
-  // Smoothly move toward the target (no timeline)
-  // gsap.to(camera.position, {
-  //   x: targetPos.x,
-  //   y: targetPos.y,
-  //   z: targetPos.z,
-  //   duration: duration,
-  //   ease: "sine.inOut",
-  // });
-
-  // gsap.to(camera.rotation, {
-  //   z: targetRot,
-  //   duration: duration,
-  //   ease: "sine.inOut",
-  // });
 }

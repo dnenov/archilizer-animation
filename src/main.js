@@ -11,12 +11,15 @@ import { ShaderPass } from "https://esm.sh/three@0.132.2/examples/jsm/postproces
 // GSAP
 import gsap from "https://esm.sh/gsap@3.11.4";
 
-// Your Custom Modules (must use raw GitHub URLs - REPLACE placeholders)
+// Custom Modules (must use raw GitHub URLs - REPLACE placeholders)
 import { createDotCluster } from "./cluster.js";
-import { animate, smoothMoveCamera, dots } from "./animation.js";
+import { animate, dots } from "./animation.js";
 import { settings } from "./settings.js";
 import { DynamicCluster } from "./dynamicCluster.js";
 
+/**
+ * Chromatic Abberation (very minimal)
+ */
 const ChromaticAberrationShader = {
   uniforms: {
     tDiffuse: { value: null },
@@ -44,15 +47,14 @@ const ChromaticAberrationShader = {
   `,
 };
 
+/**
+ * Variables
+ */
 let mouseWorld = new THREE.Vector3();
+
 document.addEventListener("DOMContentLoaded", function () {
   const maxScrollY = settings.maxScrollY;
   const container = document.getElementById("three-container");
-  const logger = document.getElementById("logger");
-  const isDebugMode =
-    window.location.hostname === "localhost" ||
-    window.location.protocol === "file:";
-
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -61,7 +63,6 @@ document.addEventListener("DOMContentLoaded", function () {
   renderer.setSize(1, 1);
   container.appendChild(renderer.domElement);
 
-  const pmrem = new PMREMGenerator(renderer);
   const composer = new EffectComposer(renderer);
   composer.setSize(1, 1);
 
@@ -90,9 +91,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const light = new THREE.AmbientLight(0xffffff, 1);
   scene.add(light);
 
+  // One group containing all of the dots
   const ringGroup = new THREE.Group();
   scene.add(ringGroup);
 
+  // The 'static' dots
   const dotsSmall = createDotCluster(
     settings.numSmall,
     settings.ringRadius,
@@ -121,18 +124,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   dots.push(...dotsLarge, ...dotsSmall);
 
-  /**
-   * Dynamic Cluster
-   */
+  // The 'dynamic' dots
   const dynamicCluster = new DynamicCluster(ringGroup, () => mouseWorld);
 
   // Start the animation loop
-  animate(camera, scene, composer, ringGroup, dynamicCluster, () => mouseWorld);
+  animate(camera, composer, dynamicCluster, () => mouseWorld);
 
   function animateToStage(stage) {
     const totalStages = settings.totalStages;
     const t = (stage - 1) / (totalStages - 1);
-    console.log(t);
 
     // Expand the ring instead of moving camera
     const radiusScale = THREE.MathUtils.lerp(settings.ringRadius, 10, t);
@@ -217,6 +217,23 @@ document.addEventListener("DOMContentLoaded", function () {
     mouseWorld = camera.position.clone().add(dir.multiplyScalar(distance));
   }
 
+  // ✅ Add this helper in main.js (same as Webflow's)
+  function getStageFromScroll(scrollY, minScrollY, maxScrollY) {
+    const clampedT = Math.min(
+      Math.max((scrollY - minScrollY) / (maxScrollY - minScrollY), 0),
+      0.9999
+    );
+    const totalStages = settings.totalStages;
+    return Math.floor(clampedT * totalStages) + 1;
+  }
+
+  handleResize(window.innerWidth, window.innerHeight);
+
+  const scrollY = window.scrollY;
+  const stage = getStageFromScroll(scrollY, 0, maxScrollY);
+
+  animateToStage(stage);
+
   // ✅ Final message handler
   window.addEventListener("message", (event) => {
     const { type, payload } = event.data;
@@ -246,21 +263,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.warn("Unknown message type:", type);
     }
   });
-
-  // ✅ Add this helper in main.js (same as Webflow's)
-  function getStageFromScroll(scrollY, minScrollY, maxScrollY) {
-    const clampedT = Math.min(
-      Math.max((scrollY - minScrollY) / (maxScrollY - minScrollY), 0),
-      0.9999
-    );
-    const totalStages = settings.totalStages;
-    return Math.floor(clampedT * totalStages) + 1;
-  }
-
-  handleResize(window.innerWidth, window.innerHeight);
-  const scrollY = window.scrollY;
-  const stage = getStageFromScroll(scrollY, 0, maxScrollY);
-  animateToStage(stage);
 
   window.addEventListener("scroll", () => {
     const stage = getStageFromScroll(window.scrollY, 0, maxScrollY);
