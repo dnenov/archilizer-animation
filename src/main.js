@@ -133,6 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function animateToStage(stage) {
     const totalStages = settings.totalStages;
     const t = (stage - 1) / (totalStages - 1);
+    const sizeMultiplier = stage === 1 ? 0.5 : 1.0;
 
     // Expand the ring instead of moving camera
     const radiusScale = THREE.MathUtils.lerp(settings.ringRadius, 10, t);
@@ -178,6 +179,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const theta = dotData.baseTheta; // already stored during creation
       const r = settings.currentRingRadius;
       dotData.basePosition.set(r * Math.cos(theta), r * Math.sin(theta), 0);
+
+      // Scale the dots initially smaller
+      const newScale = dotData.baseScale * sizeMultiplier;
+      dotData.mesh.scale.set(newScale, newScale, newScale);
     });
 
     // 🎯 Smoothly transition orbit size
@@ -194,6 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Dynamic Cluster
     dynamicCluster.setOrbitScale(orbitScale);
     dynamicCluster.setSpeedMultiplier(t);
+    dynamicCluster.setSizeMultiplyer(stage);
   }
 
   function handleResize(width, height) {

@@ -37,7 +37,7 @@ export class DynamicCluster {
       settings.dotSpawnMaterial.clone()
     );
 
-    const scale = Math.random() * cfg.SIZE + 0.5;
+    const scale = (Math.random() * cfg.SIZE + 0.5) * 0.5;
     mesh.scale.set(scale, scale, scale);
     mesh.position.set(x, y, z);
     this.ringGroup.add(mesh);
@@ -59,6 +59,7 @@ export class DynamicCluster {
     // Initialize dot state
     const dot = {
       mesh,
+      baseScale: scale,
       basePosition: new THREE.Vector3(x, y, z),
       orbitNormal,
       orbitAngleOffset: Math.random() * Math.PI * 2,
@@ -231,6 +232,13 @@ export class DynamicCluster {
     for (const dot of this.dots) {
       dot.targetSpeed = dot.baseOrbitSpeed * speedMultiplier;
       dot.globalSpeed = dot.baseGlobalSpeed * speedMultiplier;
+    }
+  }
+
+  setSizeMultiplyer(multiplier) {
+    for (const dot of this.dots) {
+      const s = dot.baseScale * multiplier;
+      dot.mesh.scale.set(s, s, s);
     }
   }
 }

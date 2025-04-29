@@ -55,6 +55,7 @@ export function createDotCluster(
       repulsionOffset: new THREE.Vector3(),
       isBeingRepelled: false,
       repulsionOffset: new THREE.Vector3(),
+      baseScale: scaleFactor,
     });
   }
 
